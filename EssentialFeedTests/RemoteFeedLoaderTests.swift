@@ -23,30 +23,33 @@ protocol HTTPClient {
   func get(from url: URL)
 }
 
-class HTTPClientSpy: HTTPClient {
-  func get(from url: URL) {
-    requestedURL = url
-  }
-
-  var requestedURL: URL?
-}
-
 struct RemoteFeedLoaderTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {
-    let url = URL(string: "https://a-url.com")!
-    let client = HTTPClientSpy()
-    _ = RemoteFeedLoader(url: url, client: client)
+    let (_, client) = makeSUT()
 
     #expect(client.requestedURL == nil)
   }
 
   @Test func testLoadRequestsDataFromURL() async throws {
     let url = URL(string: "https://a-given-url.com")!
-    let client = HTTPClientSpy()
-    let sut = RemoteFeedLoader(url: url, client: client)
+    let (sut, client) = makeSUT(url: url)
 
     sut.load()
 
     #expect(client.requestedURL == url)
+  }
+
+  // MARK: - Helpers
+  private func makeSUT(url: URL = URL(string: "https://a-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
+    let client = HTTPClientSpy()
+    return (RemoteFeedLoader(url: url, client: client), client)
+  }
+
+  private class HTTPClientSpy: HTTPClient {
+    var requestedURL: URL?
+
+    func get(from url: URL) {
+      requestedURL = url
+    }
   }
 }
