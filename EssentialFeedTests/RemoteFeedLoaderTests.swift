@@ -2,19 +2,24 @@ import Foundation
 import Testing
 
 class RemoteFeedLoader {
+
+  private let client: HTTPClient
+
+  init(client: HTTPClient) {
+    self.client = client
+  }
+
   func load() {
-    HTTPClient.shared.get(from: URL(string: "https://a-url.com")!)
+    client.get(from: URL(string: "https://a-url.com")!)
   }
 }
 
-class HTTPClient {
-  static var shared = HTTPClient()
-
-  func get(from url: URL) {}
+protocol HTTPClient {
+  func get(from url: URL)
 }
 
 class HTTPClientSpy: HTTPClient {
-  override func get(from url: URL) {
+  func get(from url: URL) {
     requestedURL = url
   }
 
@@ -24,16 +29,14 @@ class HTTPClientSpy: HTTPClient {
 struct RemoteFeedLoaderTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {
     let client = HTTPClientSpy()
-    HTTPClient.shared = client
-    _ = RemoteFeedLoader()
+    _ = RemoteFeedLoader(client: client)
 
     #expect(client.requestedURL == nil)
   }
 
   @Test func testLoadRequestsDataFromURL() async throws {
     let client = HTTPClientSpy()
-    HTTPClient.shared = client
-    let sut = RemoteFeedLoader()
+    let sut = RemoteFeedLoader(client: client)
 
     sut.load()
 
