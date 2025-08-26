@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import EssentialFeed
+import EssentialFeed
 
 struct RemoteFeedLoaderTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {

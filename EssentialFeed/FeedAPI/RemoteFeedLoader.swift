@@ -1,15 +1,15 @@
 import Foundation
 
-protocol HTTPClient {
+public protocol HTTPClient {
   func get(from url: URL)
 }
 
-class RemoteFeedLoader {
+public final class RemoteFeedLoader {
 
-  private let client: HTTPClient
   private let url: URL
+  private let client: HTTPClient
 
-  init(
+  public init(
     url: URL,
     client: HTTPClient
   ) {
@@ -17,7 +17,7 @@ class RemoteFeedLoader {
     self.client = client
   }
 
-  func load() {
+  public func load() {
     client.get(from: url)
   }
 }
