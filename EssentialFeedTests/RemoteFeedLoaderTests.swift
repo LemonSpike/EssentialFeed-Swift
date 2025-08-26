@@ -13,7 +13,7 @@ struct RemoteFeedLoaderTests {
     let url = URL(string: "https://a-given-url.com")!
     let (sut, client) = makeSUT(url: url)
 
-    _ = await sut.load()
+    sut.load() { _ in }
 
     #expect(client.requestedURLs == [url])
   }
@@ -22,23 +22,22 @@ struct RemoteFeedLoaderTests {
     let url = URL(string: "https://a-given-url.com")!
     let (sut, client) = makeSUT(url: url)
 
-    _ = await sut.load()
-    _ = await sut.load()
+    sut.load() { _ in }
+    sut.load() { _ in }
 
     #expect(client.requestedURLs == [url, url])
   }
 
   @Test func testLoadDeliversErrorOnClientError() async throws {
     let (sut, client) = makeSUT()
-    client.error = NSError(domain: "Test", code: 0)
-    
-    let result = await sut.load()
 
-    if case let .failure(error) = result {
-      #expect(error as? RemoteFeedLoader.Error == RemoteFeedLoader.Error.connectivity)
-    } else {
-      fatalError("Expected failure, got \(result) instead")
-    }
+    var capturedErrors: [RemoteFeedLoader.Error] = []
+    sut.load() { capturedErrors.append($0) }
+
+    let clientError = NSError(domain: "Test", code: 0)
+    client.complete(with: clientError)
+
+    #expect(capturedErrors == [.connectivity])
   }
 
   // MARK: - Helpers
@@ -49,14 +48,15 @@ struct RemoteFeedLoaderTests {
 
   private class HTTPClientSpy: HTTPClient {
     var requestedURLs: [URL] = []
-    var error: Error?
+    var completions: [(Error) -> Void] = []
 
-    func get(from url: URL) async -> Result<[FeedItem], Error> {
+    func get(from url: URL, completion: @escaping (Error) -> Void) {
       requestedURLs.append(url)
-      if let error {
-        return .failure(error)
-      }
-      return .success([])
+      completions.append(completion)
+    }
+
+    func complete(with error: Error, at index: Int = 0) {
+      completions[index](error)
     }
   }
 }

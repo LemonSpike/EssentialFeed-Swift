@@ -1,7 +1,7 @@
 import Foundation
 
 public protocol HTTPClient {
-  func get(from url: URL) async -> Result<[FeedItem], Error>
+  func get(from url: URL, completion: @escaping (Error) -> Void)
 }
 
 public final class RemoteFeedLoader {
@@ -21,14 +21,9 @@ public final class RemoteFeedLoader {
     self.client = client
   }
 
-  public func load() async -> Result<[FeedItem], Swift.Error> {
-    let result = await client.get(from: url)
-
-    switch result {
-    case let .success(items):
-      return .success(items)
-    case .failure:
-      return .failure(Error.connectivity)
+  public func load(completion: @escaping (RemoteFeedLoader.Error) -> Void) {
+    client.get(from: url) { error in
+      completion(Error.connectivity)
     }
   }
 }
