@@ -13,7 +13,7 @@ struct RemoteFeedLoaderTests {
     let url = URL(string: "https://a-given-url.com")!
     let (sut, client) = makeSUT(url: url)
 
-    sut.load()
+    _ = await sut.load()
 
     #expect(client.requestedURLs == [url])
   }
@@ -22,10 +22,23 @@ struct RemoteFeedLoaderTests {
     let url = URL(string: "https://a-given-url.com")!
     let (sut, client) = makeSUT(url: url)
 
-    sut.load()
-    sut.load()
+    _ = await sut.load()
+    _ = await sut.load()
 
     #expect(client.requestedURLs == [url, url])
+  }
+
+  @Test func testLoadDeliversErrorOnClientError() async throws {
+    let (sut, client) = makeSUT()
+    client.error = NSError(domain: "Test", code: 0)
+    
+    let result = await sut.load()
+
+    if case let .failure(error) = result {
+      #expect(error as? RemoteFeedLoader.Error == RemoteFeedLoader.Error.connectivity)
+    } else {
+      fatalError("Expected failure, got \(result) instead")
+    }
   }
 
   // MARK: - Helpers
@@ -36,9 +49,14 @@ struct RemoteFeedLoaderTests {
 
   private class HTTPClientSpy: HTTPClient {
     var requestedURLs: [URL] = []
+    var error: Error?
 
-    func get(from url: URL) {
+    func get(from url: URL) async -> Result<[FeedItem], Error> {
       requestedURLs.append(url)
+      if let error {
+        return .failure(error)
+      }
+      return .success([])
     }
   }
 }
