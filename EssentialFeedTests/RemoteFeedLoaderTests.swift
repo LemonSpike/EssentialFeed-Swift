@@ -43,12 +43,17 @@ struct RemoteFeedLoaderTests {
   @Test func testLoadDeliversErrorOnHTTPErrorStatusCode() async throws {
     let (sut, client) = makeSUT()
 
-    var capturedErrors: [RemoteFeedLoader.Error] = []
-    sut.load() { capturedErrors.append($0) }
 
-    client.complete(withStatusCode: 401)
+    let samples = [199, 201, 300, 400, 500].enumerated()
 
-    #expect(capturedErrors == [.invalidData])
+    samples.forEach { (index, code) in
+      var capturedErrors: [RemoteFeedLoader.Error] = []
+      sut.load() { capturedErrors.append($0) }
+
+      client.complete(withStatusCode: code, at: index)
+
+      #expect(capturedErrors == [.invalidData])
+    }
   }
 
   // MARK: - Helpers
