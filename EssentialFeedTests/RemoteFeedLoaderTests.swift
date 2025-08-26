@@ -18,6 +18,16 @@ struct RemoteFeedLoaderTests {
     #expect(client.requestedURL == url)
   }
 
+  @Test func testLoadTwiceRequestsDataFromURLTwice() async throws {
+    let url = URL(string: "https://a-given-url.com")!
+    let (sut, client) = makeSUT(url: url)
+
+    sut.load()
+    sut.load()
+
+    #expect(client.requestedURLs == [url, url])
+  }
+
   // MARK: - Helpers
   private func makeSUT(url: URL = URL(string: "https://a-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
     let client = HTTPClientSpy()
@@ -26,9 +36,11 @@ struct RemoteFeedLoaderTests {
 
   private class HTTPClientSpy: HTTPClient {
     var requestedURL: URL?
+    var requestedURLs: [URL?] = []
 
     func get(from url: URL) {
       requestedURL = url
+      requestedURLs.append(url)
     }
   }
 }
