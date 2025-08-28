@@ -61,13 +61,10 @@ struct RemoteFeedLoaderTests {
   @Test func testLoadDeliversNoItemsOnSuccessHTTPResponseWithEmptyJSONList() async throws {
     let (sut, client) = makeSUT()
 
-    var capturedResults: [RemoteFeedLoader.Result] = []
-    sut.load { capturedResults.append($0) }
-
-    let emptyListJSON = Data("{\"items\": []}".utf8)
-    client.complete(withStatusCode: 200, data: emptyListJSON)
-
-    #expect(capturedResults == [.success([])])
+    expect(sut, toCompleteWithResult: .success([])) {
+      let emptyListJSON = Data("{\"items\": []}".utf8)
+      client.complete(withStatusCode: 200, data: emptyListJSON)
+    }
   }
 
   // MARK: - Helpers
