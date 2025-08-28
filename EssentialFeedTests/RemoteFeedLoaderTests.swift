@@ -31,7 +31,7 @@ struct RemoteFeedLoaderTests {
   @Test func testLoadDeliversErrorOnClientError() async throws {
     let (sut, client) = makeSUT()
 
-    expect(sut, toCompleteWithError: .connectivity) {
+    expect(sut, toCompleteWithResult: .failure(.connectivity)) {
       let clientError = NSError(domain: "Test", code: 0)
       client.complete(with: clientError)
     }
@@ -43,7 +43,7 @@ struct RemoteFeedLoaderTests {
     let samples = [199, 201, 300, 400, 500].enumerated()
 
     samples.forEach { (index, code) in
-      expect(sut, toCompleteWithError: .invalidData) {
+      expect(sut, toCompleteWithResult: .failure(.invalidData)) {
         client.complete(withStatusCode: code, at: index)
       }
     }
@@ -52,10 +52,22 @@ struct RemoteFeedLoaderTests {
   @Test func testLoadDeliversErrorOnSuccessHTTPResponseWithInvalidJSON() async throws {
     let (sut, client) = makeSUT()
 
-    expect(sut, toCompleteWithError: .invalidData) {
+    expect(sut, toCompleteWithResult: .failure(.invalidData)) {
       let invalidJSON = Data("invalid json".utf8)
       client.complete(withStatusCode: 200, data: invalidJSON)
     }
+  }
+
+  @Test func testLoadDeliversNoItemsOnSuccessHTTPResponseWithEmptyJSONList() async throws {
+    let (sut, client) = makeSUT()
+
+    var capturedResults: [RemoteFeedLoader.Result] = []
+    sut.load { capturedResults.append($0) }
+
+    let emptyListJSON = Data("{\"items\": []}".utf8)
+    client.complete(withStatusCode: 200, data: emptyListJSON)
+
+    #expect(capturedResults == [.success([])])
   }
 
   // MARK: - Helpers
@@ -66,7 +78,7 @@ struct RemoteFeedLoaderTests {
 
   private func expect(
     _ sut: RemoteFeedLoader,
-    toCompleteWithError error: RemoteFeedLoader.Error,
+    toCompleteWithResult result: RemoteFeedLoader.Result,
     when action: () -> Void
   ) {
     var capturedResults: [RemoteFeedLoader.Result] = []
@@ -75,7 +87,7 @@ struct RemoteFeedLoaderTests {
     action()
 
     // cannot add file and line params with Swift Testing framework yet
-    #expect(capturedResults == [.failure(error)])
+    #expect(capturedResults == [result])
   }
 
   private class HTTPClientSpy: HTTPClient {
