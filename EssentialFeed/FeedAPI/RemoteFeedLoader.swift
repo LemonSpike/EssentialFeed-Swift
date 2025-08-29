@@ -37,7 +37,7 @@ public final class RemoteFeedLoader {
       switch result {
       case let .success(data, response):
         if response.statusCode == 200, let root = try? JSONDecoder().decode(Root.self, from: data) {
-          completion(.success(root.items))
+          completion(.success(root.items.map { $0.feedItem }))
         } else {
           completion(.failure(.invalidData))
         }
@@ -49,20 +49,16 @@ public final class RemoteFeedLoader {
 }
 
 private struct Root: Decodable {
-  let items: [FeedItem]
+  let items: [Item]
 }
 
-extension FeedItem: Decodable {
-  public init(from decoder: any Decoder) throws {
-    let container = try decoder.container(keyedBy: CodingKeys.self)
-    id = try container.decode(UUID.self, forKey: .id)
-    description = try container.decodeIfPresent(String.self, forKey: .description)
-    location = try container.decodeIfPresent(String.self, forKey: .location)
-    imageURL = try container.decode(URL.self, forKey: .imageURL)
-  }
-    
-  private enum CodingKeys: String, CodingKey {
-    case id, description, location
-    case imageURL = "image"
+private struct Item: Decodable {
+  let id: UUID
+  let description: String?
+  let location: String?
+  let image: URL
+
+  var feedItem: FeedItem {
+    return FeedItem(id: id, description: description, location: location, imageURL: image)
   }
 }
