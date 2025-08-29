@@ -51,3 +51,18 @@ public final class RemoteFeedLoader {
 private struct Root: Decodable {
   let items: [FeedItem]
 }
+
+extension FeedItem: Decodable {
+  public init(from decoder: any Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(UUID.self, forKey: .id)
+    description = try container.decodeIfPresent(String.self, forKey: .description)
+    location = try container.decodeIfPresent(String.self, forKey: .location)
+    imageURL = try container.decode(URL.self, forKey: .imageURL)
+  }
+    
+  private enum CodingKeys: String, CodingKey {
+    case id, description, location
+    case imageURL = "image"
+  }
+}
