@@ -124,6 +124,23 @@ struct RemoteFeedLoaderTests {
     }
   }
 
+  @Test func testLoadDoesNotDeliverResultAfterSUTInstanceHasBeenDeallocated() async throws {
+    LeakChecker { checker in
+      let url = URL(string: "https://a-url.com")!
+      let client = HTTPClientSpy()
+      var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)
+      checker.checkForMemoryLeak(client)
+
+      var capturedResults: [RemoteFeedLoader.Result] = []
+      sut?.load() { capturedResults.append($0) }
+
+      sut = nil
+      client.complete(withStatusCode: 200, data: makeItemsJson([]))
+
+      #expect(capturedResults.isEmpty)
+    }
+  }
+
   // MARK: - Helpers
   private func makeSUT(url: URL = URL(string: "https://a-url.com")!) -> (sut: RemoteFeedLoader, client: HTTPClientSpy) {
     let client = HTTPClientSpy()
@@ -186,6 +203,9 @@ struct RemoteFeedLoaderTests {
     }
 
     func complete(withStatusCode code: Int, data: Data, at index: Int = 0) {
+      guard (0..<messages.count).contains(index) else {
+        fatalError("Invalid message index, call the load method before completing a request")
+      }
       let response = HTTPURLResponse(
         url: requestedURLs[index],
         statusCode: code,
