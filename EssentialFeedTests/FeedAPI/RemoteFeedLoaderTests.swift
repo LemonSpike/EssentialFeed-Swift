@@ -46,7 +46,7 @@ struct RemoteFeedLoaderTests {
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
 
-      await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.connectivity)) {
+      await expect(sut, toCompleteWithResult: failure(.connectivity)) {
         let clientError = NSError(domain: "Test", code: 0)
         client.complete(with: clientError)
       }
@@ -62,7 +62,7 @@ struct RemoteFeedLoaderTests {
       let samples = [199, 201, 300, 400, 500].enumerated()
 
       for (index, code) in samples {
-        await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData)) {
+        await expect(sut, toCompleteWithResult: failure(.invalidData)) {
           let json = makeItemsJson([])
           client.complete(withStatusCode: code, data: json, at: index)
         }
@@ -76,7 +76,7 @@ struct RemoteFeedLoaderTests {
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
 
-      await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData)) {
+      await expect(sut, toCompleteWithResult: failure(.invalidData)) {
         let invalidJSON = Data("invalid json".utf8)
         client.complete(withStatusCode: 200, data: invalidJSON)
       }
@@ -171,6 +171,10 @@ struct RemoteFeedLoaderTests {
   private func makeItemsJson(_ items: [[String: Any]]) -> Data {
     let json = ["items": items]
     return try! JSONSerialization.data(withJSONObject: json)
+  }
+
+  private func failure(_ error: RemoteFeedLoader.Error) -> RemoteFeedLoader.Result {
+    .failure(error)
   }
 
   private func expect(
