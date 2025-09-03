@@ -46,7 +46,7 @@ struct RemoteFeedLoaderTests {
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
 
-      await expect(sut, toCompleteWithResult: .failure(.connectivity)) {
+      await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.connectivity)) {
         let clientError = NSError(domain: "Test", code: 0)
         client.complete(with: clientError)
       }
@@ -62,7 +62,7 @@ struct RemoteFeedLoaderTests {
       let samples = [199, 201, 300, 400, 500].enumerated()
 
       for (index, code) in samples {
-        await expect(sut, toCompleteWithResult: .failure(.invalidData)) {
+        await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData)) {
           let json = makeItemsJson([])
           client.complete(withStatusCode: code, data: json, at: index)
         }
@@ -76,7 +76,7 @@ struct RemoteFeedLoaderTests {
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
 
-      await expect(sut, toCompleteWithResult: .failure(.invalidData)) {
+      await expect(sut, toCompleteWithResult: .failure(RemoteFeedLoader.Error.invalidData)) {
         let invalidJSON = Data("invalid json".utf8)
         client.complete(withStatusCode: 200, data: invalidJSON)
       }
@@ -188,7 +188,7 @@ struct RemoteFeedLoaderTests {
         switch (receivedResult, result) {
         case let (.success(receivedItems), .success(expectedItems)):
           #expect(receivedItems == expectedItems, sourceLocation: sourceLocation)
-        case let (.failure(receivedError), .failure(expectedError)):
+        case let (.failure(receivedError as RemoteFeedLoader.Error), .failure(expectedError as RemoteFeedLoader.Error)):
           #expect(receivedError == expectedError, sourceLocation: sourceLocation)
         default:
           #expect(Bool(false), "Expected a different result.", sourceLocation: sourceLocation)
