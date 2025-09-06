@@ -10,7 +10,10 @@ public struct URLSessionHTTPClient {
   public func get(from url: URL) async throws -> HTTPClientResult {
     do {
       let (data, response) = try await session.data(from: url)
-      return .success(data, response as! HTTPURLResponse)
+      guard let response = response as? HTTPURLResponse else {
+        throw URLError(.badServerResponse)
+      }
+      return .success(data, response)
     } catch {
       return .failure(error)
     }
