@@ -1,9 +1,9 @@
 import Foundation
 
 public struct URLSessionHTTPClient {
-  private let session: URLSession
+  private let session: HTTPSession
   
-  public init(session: URLSession) {
+  public init(session: HTTPSession) {
     self.session = session
   }
   
