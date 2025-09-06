@@ -18,7 +18,8 @@ struct URLSessionHTTPClientTests {
     let result = try await sut.get(from: url)
     switch result {
     case let .failure(receivedError as NSError):
-      #expect(error.localizedDescription == receivedError.localizedDescription)
+      #expect(receivedError.domain == error.domain)
+      #expect(receivedError.code == error.code)
     default:
       #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.")
     }
