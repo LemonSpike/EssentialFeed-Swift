@@ -3,16 +3,6 @@ import Testing
 import EssentialFeed
 
 struct URLSessionHTTPClientTests {
-  @Test func testGetFromURLCreatesDataTaskWithURL() async throws {
-    let url = URL(string: "https://any-url.com")!
-    let session = URLSessionSpy()
-    let sut = URLSessionHTTPClient(session: session)
-    
-    sut.get(from: url)
-    
-    #expect(session.receivedURLs == [url])
-  }
-  
   @Test func testGetFromURLResumesDataTaskWithURL() async throws {
     let url = URL(string: "https://any-url.com")!
     let task = URLSessionDataTaskSpy()
@@ -27,7 +17,6 @@ struct URLSessionHTTPClientTests {
   
   // MARK: Helpers
   private class URLSessionSpy: URLSession, @unchecked Sendable {
-    private(set) var receivedURLs: [URL] = []
     private(set) var stubs: [URL: URLSessionDataTask] = [:]
     
     func stub(url: URL, task: URLSessionDataTaskSpy) {
@@ -35,7 +24,6 @@ struct URLSessionHTTPClientTests {
     }
     
     override func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-      receivedURLs.append(url)
       return stubs[url] ?? URLSessionDataTaskSpy()
     }
   }
