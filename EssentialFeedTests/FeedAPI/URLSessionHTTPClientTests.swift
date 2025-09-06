@@ -10,21 +10,54 @@ struct URLSessionHTTPClientTests {
     session.stub(url: url, task: task)
     let sut = URLSessionHTTPClient(session: session)
     
-    sut.get(from: url)
+    sut.get(from: url) { _ in }
     
     #expect(task.resumeCallCount == 1)
+  }
+
+  @Test func testGetFromURLFailsOnRequestError() async throws {
+    let url = URL(string: "https://any-url.com")!
+    let error = NSError(domain: "Any Error", code: 1)
+    let session = URLSessionSpy()
+    session.stub(url: url, error: error)
+    let sut = URLSessionHTTPClient(session: session)
+    
+    _ = await confirmation("Wait for get completion") { fulfill in
+      sut.get(from: url) { result in
+        switch result {
+        case let .failure(receivedError as NSError):
+          #expect(error == receivedError)
+        default:
+          #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.")
+        }
+        fulfill()
+      }
+    }
   }
   
   // MARK: Helpers
   private class URLSessionSpy: URLSession, @unchecked Sendable {
-    private(set) var stubs: [URL: URLSessionDataTask] = [:]
+    private var stubs: [URL: Stub] = [:]
     
-    func stub(url: URL, task: URLSessionDataTaskSpy) {
-      stubs[url] = task
+    private struct Stub {
+      let task: URLSessionDataTask
+      let error: Error?
+    }
+    
+    func stub(
+      url: URL,
+      task: URLSessionDataTask = URLSessionDataTaskSpy(),
+      error: Error? = nil
+    ) {
+      stubs[url] = Stub(task: task, error: error)
     }
     
     override func dataTask(with url: URL, completionHandler: @escaping (Data?, URLResponse?, Error?) -> Void) -> URLSessionDataTask {
-      return stubs[url] ?? URLSessionDataTaskSpy()
+      guard let stub = stubs[url] else {
+        fatalError("Couldn't find stub for \(url)")
+      }
+      completionHandler(nil, nil, stub.error)
+      return stub.task
     }
   }
 

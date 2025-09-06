@@ -7,9 +7,11 @@ public struct URLSessionHTTPClient {
     self.session = session
   }
   
-  public func get(from url: URL) {
-    session.dataTask(with: url) { _, _, _ in
-      
+  public func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
+    session.dataTask(with: url) { _, _, error in
+      if let error {
+        completion(.failure(error))
+      }
     }.resume()
   }
 }
