@@ -1,17 +1,18 @@
 import Foundation
 
 public struct URLSessionHTTPClient {
-  private let session: HTTPSession
+  private let session: URLSession
   
-  public init(session: HTTPSession) {
+  public init(session: URLSession = .shared) {
     self.session = session
   }
   
-  public func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
-    session.dataTask(with: url) { _, _, error in
-      if let error {
-        completion(.failure(error))
-      }
-    }.resume()
+  public func get(from url: URL) async throws -> HTTPClientResult {
+    do {
+      let (data, response) = try await session.data(from: url)
+      return .success(data, response as! HTTPURLResponse)
+    } catch {
+      return .failure(error)
+    }
   }
 }
