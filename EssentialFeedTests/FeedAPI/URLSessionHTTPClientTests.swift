@@ -3,6 +3,23 @@ import Testing
 import EssentialFeed
 
 struct URLSessionHTTPClientTests {
+  @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
+    URLProtocolStub.startInterceptingRequests()
+    
+    let url = URL(string: "https://any-url.com")!
+    await confirmation("Wait for request") { fulfill in
+      URLProtocolStub.observeRequests { request in
+        #expect(request.url == url)
+        #expect(request.httpMethod == "GET")
+        fulfill()
+      }
+      
+      let sut = URLSessionHTTPClient()
+      _ = try? await sut.get(from: url)
+      URLProtocolStub.stopInterceptingRequests()
+    }
+  }
+  
   @Test func testGetFromURLFailsOnRequestError() async throws {
     URLProtocolStub.startInterceptingRequests()
     let url = URL(string: "https://any-url.com")!
@@ -28,6 +45,7 @@ struct URLSessionHTTPClientTests {
   // MARK: Helpers
   private class URLProtocolStub: URLProtocol {
     private static var stub: Stub?
+    private static var requestObserver: ((URLRequest) -> Void)?
     
     private struct Stub {
       let data: Data?
@@ -47,6 +65,10 @@ struct URLSessionHTTPClientTests {
       )
     }
     
+    static func observeRequests(observer: @escaping (URLRequest) -> Void) {
+      requestObserver = observer
+    }
+    
     static func startInterceptingRequests() {
       URLProtocol.registerClass(URLProtocolStub.self)
     }
@@ -54,9 +76,11 @@ struct URLSessionHTTPClientTests {
     static func stopInterceptingRequests() {
       URLProtocol.unregisterClass(URLProtocolStub.self)
       stub = nil
+      requestObserver = nil
     }
     
     override class func canInit(with request: URLRequest) -> Bool {
+      requestObserver?(request)
       return true
     }
     
@@ -66,6 +90,7 @@ struct URLSessionHTTPClientTests {
     
     override func startLoading() {
       guard let stub = URLProtocolStub.stub else {
+        client?.urlProtocol(self, didFailWithError: NSError(domain: "URLProtocolStub", code: 1, userInfo: [NSLocalizedDescriptionKey: "No stub available"]))
         client?.urlProtocolDidFinishLoading(self)
         return
       }
