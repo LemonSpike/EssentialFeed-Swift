@@ -8,7 +8,6 @@ struct URLSessionHTTPClientTests {
     let url = URL(string: "https://any-url.com")!
     let error = NSError(domain: "Any Error", code: 1)
     URLProtocolStub.stub(
-      url: url,
       data: nil,
       response: nil,
       error: error
@@ -28,7 +27,7 @@ struct URLSessionHTTPClientTests {
   
   // MARK: Helpers
   private class URLProtocolStub: URLProtocol {
-    private static var stubs: [URL: Stub] = [:]
+    private static var stub: Stub?
     
     private struct Stub {
       let data: Data?
@@ -37,12 +36,11 @@ struct URLSessionHTTPClientTests {
     }
     
     static func stub(
-      url: URL,
       data: Data?,
       response: URLResponse?,
       error: Error? = nil
     ) {
-      stubs[url] = Stub(
+      stub = Stub(
         data: data,
         response: response,
         error: error
@@ -55,12 +53,11 @@ struct URLSessionHTTPClientTests {
     
     static func stopInterceptingRequests() {
       URLProtocol.unregisterClass(URLProtocolStub.self)
-      stubs = [:]
+      stub = nil
     }
     
     override class func canInit(with request: URLRequest) -> Bool {
-      guard let url = request.url else { return false }
-      return stubs[url] != nil
+      return true
     }
     
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
@@ -68,7 +65,8 @@ struct URLSessionHTTPClientTests {
     }
     
     override func startLoading() {
-      guard let url = request.url, let stub = URLProtocolStub.stubs[url] else {
+      guard let stub = URLProtocolStub.stub else {
+        client?.urlProtocolDidFinishLoading(self)
         return
       }
       
