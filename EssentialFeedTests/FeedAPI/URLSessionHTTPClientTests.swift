@@ -2,10 +2,18 @@ import Foundation
 import Testing
 import EssentialFeed
 
-struct URLSessionHTTPClientTests {
-  @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
+@Suite
+class URLSessionHTTPClientTests {
+  
+  init() {
     URLProtocolStub.startInterceptingRequests()
-    
+  }
+  
+  deinit {
+    URLProtocolStub.stopInterceptingRequests()
+  }
+  
+  @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
     let url = URL(string: "https://any-url.com")!
     await confirmation("Wait for request") { fulfill in
       URLProtocolStub.observeRequests { request in
@@ -16,12 +24,10 @@ struct URLSessionHTTPClientTests {
       
       let sut = URLSessionHTTPClient()
       _ = try? await sut.get(from: url)
-      URLProtocolStub.stopInterceptingRequests()
     }
   }
   
   @Test func testGetFromURLFailsOnRequestError() async throws {
-    URLProtocolStub.startInterceptingRequests()
     let url = URL(string: "https://any-url.com")!
     let error = NSError(domain: "Any Error", code: 1)
     URLProtocolStub.stub(
@@ -39,7 +45,6 @@ struct URLSessionHTTPClientTests {
     default:
       #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.")
     }
-    URLProtocolStub.stopInterceptingRequests()
   }
   
   // MARK: Helpers
