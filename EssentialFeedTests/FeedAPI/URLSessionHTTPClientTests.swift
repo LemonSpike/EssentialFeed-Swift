@@ -50,6 +50,9 @@ class URLSessionHTTPClientTests {
     }
   }
   
+  // `testGetFromURLFailsOnAllNilValues()` is not required because the
+  // `get(from: URL)` implementation never returns a `nil` error on failure.
+    
   // MARK: Helpers
   
   private func makeSUT() -> URLSessionHTTPClient {
