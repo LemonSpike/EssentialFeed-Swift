@@ -22,8 +22,7 @@ class URLSessionHTTPClientTests {
         fulfill()
       }
       
-      let sut = URLSessionHTTPClient()
-      _ = try? await sut.get(from: url)
+      _ = try? await makeSUT().get(from: url)
     }
   }
   
@@ -35,9 +34,8 @@ class URLSessionHTTPClientTests {
       response: nil,
       error: error
     )
-    let sut = URLSessionHTTPClient()
     
-    let result = try await sut.get(from: url)
+    let result = try await makeSUT().get(from: url)
     switch result {
     case let .failure(receivedError as NSError):
       #expect(receivedError.domain == error.domain)
@@ -48,6 +46,11 @@ class URLSessionHTTPClientTests {
   }
   
   // MARK: Helpers
+  
+  private func makeSUT() -> URLSessionHTTPClient {
+    URLSessionHTTPClient()
+  }
+  
   private class URLProtocolStub: URLProtocol {
     private static var stub: Stub?
     private static var requestObserver: ((URLRequest) -> Void)?
