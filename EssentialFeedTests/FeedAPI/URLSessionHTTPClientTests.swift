@@ -15,7 +15,8 @@ class URLSessionHTTPClientTests {
   
   @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
     try await LeakChecker { [weak self] checker in
-      let url = URL(string: "https://any-url.com")!
+      guard let self else { return }
+      let url = self.anyURL()
       try await confirmation("Wait for request") { fulfill in
         URLProtocolStub.observeRequests { request in
           #expect(request.url == url)
@@ -23,14 +24,14 @@ class URLSessionHTTPClientTests {
           fulfill()
         }
         
-        _ = try await self?.makeSUT().get(from: url)
+        _ = try await self.makeSUT().get(from: url)
       }
     }
   }
   
   @Test func testGetFromURLFailsOnRequestError() async throws {
     try await LeakChecker { [weak self] checker in
-      let url = URL(string: "https://any-url.com")!
+      guard let self else { return }
       let error = NSError(domain: "Any Error", code: 1)
       URLProtocolStub.stub(
         data: nil,
@@ -38,7 +39,7 @@ class URLSessionHTTPClientTests {
         error: error
       )
       
-      let result = try await self?.makeSUT().get(from: url)
+      let result = try await self.makeSUT().get(from: self.anyURL())
       switch result {
       case let .failure(receivedError as NSError):
         #expect(receivedError.domain == error.domain)
@@ -53,6 +54,10 @@ class URLSessionHTTPClientTests {
   
   private func makeSUT() -> URLSessionHTTPClient {
     URLSessionHTTPClient()
+  }
+  
+  private func anyURL() -> URL {
+    URL(string: "https://any-url.com")!
   }
   
   private class URLProtocolStub: URLProtocol {

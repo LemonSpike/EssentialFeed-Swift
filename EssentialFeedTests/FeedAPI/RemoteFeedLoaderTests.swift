@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import EssentialFeed
 
+@Suite
 struct RemoteFeedLoaderTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {
     try await LeakChecker { checker in
