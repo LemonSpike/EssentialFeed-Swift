@@ -4,7 +4,7 @@ import EssentialFeed
 
 struct RemoteFeedLoaderTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -14,7 +14,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadRequestsDataFromURL() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let url = URL(string: "https://a-given-url.com")!
       let (sut, client) = makeSUT(url: url)
       checker.checkForMemoryLeak(client)
@@ -27,7 +27,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadTwiceRequestsDataFromURLTwice() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let url = URL(string: "https://a-given-url.com")!
       let (sut, client) = makeSUT(url: url)
       checker.checkForMemoryLeak(client)
@@ -41,7 +41,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDeliversErrorOnClientError() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -54,7 +54,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDeliversErrorOnHTTPErrorStatusCode() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -71,7 +71,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDeliversErrorOnSuccessHTTPResponseWithInvalidJSON() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -84,7 +84,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDeliversNoItemsOnSuccessHTTPResponseWithEmptyJSONList() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -97,7 +97,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDeliversItemsOnSuccessHTTPResponseWithValidJSONItems() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let (sut, client) = makeSUT()
       checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(sut)
@@ -125,7 +125,7 @@ struct RemoteFeedLoaderTests {
   }
 
   @Test func testLoadDoesNotDeliverResultAfterSUTInstanceHasBeenDeallocated() async throws {
-    await LeakChecker { checker in
+    try await LeakChecker { checker in
       let url = URL(string: "https://a-url.com")!
       let client = HTTPClientSpy()
       var sut: RemoteFeedLoader? = RemoteFeedLoader(url: url, client: client)

@@ -14,34 +14,38 @@ class URLSessionHTTPClientTests {
   }
   
   @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
-    let url = URL(string: "https://any-url.com")!
-    await confirmation("Wait for request") { fulfill in
-      URLProtocolStub.observeRequests { request in
-        #expect(request.url == url)
-        #expect(request.httpMethod == "GET")
-        fulfill()
+    try await LeakChecker { [weak self] checker in
+      let url = URL(string: "https://any-url.com")!
+      try await confirmation("Wait for request") { fulfill in
+        URLProtocolStub.observeRequests { request in
+          #expect(request.url == url)
+          #expect(request.httpMethod == "GET")
+          fulfill()
+        }
+        
+        _ = try await self?.makeSUT().get(from: url)
       }
-      
-      _ = try? await makeSUT().get(from: url)
     }
   }
   
   @Test func testGetFromURLFailsOnRequestError() async throws {
-    let url = URL(string: "https://any-url.com")!
-    let error = NSError(domain: "Any Error", code: 1)
-    URLProtocolStub.stub(
-      data: nil,
-      response: nil,
-      error: error
-    )
-    
-    let result = try await makeSUT().get(from: url)
-    switch result {
-    case let .failure(receivedError as NSError):
-      #expect(receivedError.domain == error.domain)
-      #expect(receivedError.code == error.code)
-    default:
-      #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.")
+    try await LeakChecker { [weak self] checker in
+      let url = URL(string: "https://any-url.com")!
+      let error = NSError(domain: "Any Error", code: 1)
+      URLProtocolStub.stub(
+        data: nil,
+        response: nil,
+        error: error
+      )
+      
+      let result = try await self?.makeSUT().get(from: url)
+      switch result {
+      case let .failure(receivedError as NSError):
+        #expect(receivedError.domain == error.domain)
+        #expect(receivedError.code == error.code)
+      default:
+        #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.")
+      }
     }
   }
   

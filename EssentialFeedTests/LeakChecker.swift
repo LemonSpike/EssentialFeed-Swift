@@ -37,14 +37,14 @@ final class LeakChecker {
 
   private var checks: [LeakCheck] = []
 
-  typealias Scope = (_ checker: LeakChecker) async -> Void
+  typealias Scope = (_ checker: LeakChecker) async throws -> Void
 
   private let scope: Scope
 
   @discardableResult
-  init(scope: @escaping Scope) async {
+  init(scope: @escaping Scope) async throws {
     self.scope = scope
-    await scope(self)
+    try await scope(self)
   }
 
   deinit {
