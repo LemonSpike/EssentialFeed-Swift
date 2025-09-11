@@ -33,15 +33,38 @@ class URLSessionHTTPClientTests {
     try await LeakChecker { [weak self] checker in
       guard let self else { return }
       let requestError = NSError(domain: "Any Error", code: 1)
-      let receivedError = try await resultErrorFor(data: nil, response: nil, error: requestError) as? NSError
+      let stub = URLProtocolStub.Stub(data: nil, response: nil, error: requestError)
+      let receivedError = try await resultErrorFor(stub: stub) as? NSError
       
       #expect(receivedError?.domain == requestError.domain)
       #expect(receivedError?.code == requestError.code)
     }
   }
   
-  // `testGetFromURLFailsOnAllNilValues()` is not required because the
-  // `get(from: URL)` implementation never returns a `nil` error on failure.
+  @Test(
+    "Invalid representation yields error",
+    arguments: [
+      // (data, response, error)
+      URLProtocolStub.Stub(data: nil,
+       response: URLResponse(url: URL(string: "https://any-url.com")!, mimeType: nil, expectedContentLength: 0, textEncodingName: nil),
+       error: nil),
+      URLProtocolStub.Stub(data: "any data".data(using: .utf8),
+       response: nil,
+       error: NSError(domain: "Any Error", code: 1)),
+      URLProtocolStub.Stub(data: nil,
+       response: URLResponse(url: URL(string: "https://any-url.com")!, mimeType: nil, expectedContentLength: 0, textEncodingName: nil),
+       error: NSError(domain: "Any Error", code: 1)),
+      URLProtocolStub.Stub(data: nil,
+       response: HTTPURLResponse(url: URL(string: "https://any-url.com")!, statusCode: 200, httpVersion: nil, headerFields: nil),
+       error: NSError(domain: "Any Error", code: 1))
+    ])
+  private func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: URLProtocolStub.Stub) async throws {
+    try await LeakChecker { [weak self] checker in
+      guard let self else { return }
+      let receivedError = try await resultErrorFor(stub: stub)
+      #expect(receivedError != nil, sourceLocation: SourceLocation(fileID: #fileID, filePath: #filePath, line: #line, column: #column))
+    }
+  }
     
   // MARK: Helpers
   
@@ -59,18 +82,14 @@ class URLSessionHTTPClientTests {
   }
   
   private func resultErrorFor(
-    data: Data?,
-    response: URLResponse?,
-    error: Error?,
+    stub: URLProtocolStub.Stub,
     fileID: String = #fileID,
     filePath: String = #filePath,
     line: Int = #line,
     column: Int = #column
   ) async throws -> Error? {
     URLProtocolStub.stub(
-      data: data,
-      response: response,
-      error: error
+      with: stub
     )
     
     let sut = self.makeSUT(
@@ -86,13 +105,7 @@ class URLSessionHTTPClientTests {
     case let .failure(error as NSError):
       receivedError = error
     default:
-      let location = SourceLocation(
-        fileID: fileID,
-        filePath: filePath,
-        line: line,
-        column: column
-      )
-      #expect(Bool(false), "Expected failure with error \(error), got \(result) instead.", sourceLocation: location)
+      break
     }
     return receivedError
   }
@@ -101,22 +114,16 @@ class URLSessionHTTPClientTests {
     private static var stub: Stub?
     private static var requestObserver: ((URLRequest) -> Void)?
     
-    private struct Stub {
+    struct Stub {
       let data: Data?
       let response: URLResponse?
       let error: Error?
     }
     
     static func stub(
-      data: Data?,
-      response: URLResponse?,
-      error: Error? = nil
+      with stub: Stub
     ) {
-      stub = Stub(
-        data: data,
-        response: response,
-        error: error
-      )
+      self.stub = stub
     }
     
     static func observeRequests(observer: @escaping (URLRequest) -> Void) {
