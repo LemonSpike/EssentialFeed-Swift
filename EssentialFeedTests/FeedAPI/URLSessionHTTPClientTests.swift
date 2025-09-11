@@ -33,7 +33,7 @@ class URLSessionHTTPClientTests {
     try await LeakChecker { [weak self] checker in
       guard let self else { return }
       let requestError = NSError(domain: "Any Error", code: 1)
-      let stub = URLProtocolStub.Stub(data: nil, response: nil, error: requestError)
+      let stub = Stub(data: nil, response: nil, error: requestError)
       let receivedError = try await resultErrorFor(stub: stub) as? NSError
       
       #expect(receivedError?.domain == requestError.domain)
@@ -45,20 +45,20 @@ class URLSessionHTTPClientTests {
     "Invalid representation yields error",
     arguments: [
       // (data, response, error)
-      URLProtocolStub.Stub(data: nil,
+      Stub(data: nil,
        response: URLResponse(url: URL(string: "https://any-url.com")!, mimeType: nil, expectedContentLength: 0, textEncodingName: nil),
        error: nil),
-      URLProtocolStub.Stub(data: "any data".data(using: .utf8),
+      Stub(data: "any data".data(using: .utf8),
        response: nil,
        error: NSError(domain: "Any Error", code: 1)),
-      URLProtocolStub.Stub(data: nil,
+      Stub(data: nil,
        response: URLResponse(url: URL(string: "https://any-url.com")!, mimeType: nil, expectedContentLength: 0, textEncodingName: nil),
        error: NSError(domain: "Any Error", code: 1)),
-      URLProtocolStub.Stub(data: nil,
+      Stub(data: nil,
        response: HTTPURLResponse(url: URL(string: "https://any-url.com")!, statusCode: 200, httpVersion: nil, headerFields: nil),
        error: NSError(domain: "Any Error", code: 1))
     ])
-  private func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: URLProtocolStub.Stub) async throws {
+  private func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: Stub) async throws {
     try await LeakChecker { [weak self] checker in
       guard let self else { return }
       let receivedError = try await resultErrorFor(stub: stub)
@@ -82,15 +82,13 @@ class URLSessionHTTPClientTests {
   }
   
   private func resultErrorFor(
-    stub: URLProtocolStub.Stub,
+    stub: Stub,
     fileID: String = #fileID,
     filePath: String = #filePath,
     line: Int = #line,
     column: Int = #column
   ) async throws -> Error? {
-    URLProtocolStub.stub(
-      with: stub
-    )
+    URLProtocolStub.stub(with: stub)
     
     let sut = self.makeSUT(
       fileID: fileID,
@@ -110,15 +108,15 @@ class URLSessionHTTPClientTests {
     return receivedError
   }
   
+  private struct Stub {
+    let data: Data?
+    let response: URLResponse?
+    let error: Error?
+  }
+  
   private class URLProtocolStub: URLProtocol {
     private static var stub: Stub?
     private static var requestObserver: ((URLRequest) -> Void)?
-    
-    struct Stub {
-      let data: Data?
-      let response: URLResponse?
-      let error: Error?
-    }
     
     static func stub(
       with stub: Stub
