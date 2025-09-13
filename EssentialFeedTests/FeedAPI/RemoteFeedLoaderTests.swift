@@ -214,6 +214,10 @@ struct RemoteFeedLoaderTests {
     func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
       messages.append((url, completion))
     }
+    
+    func get(from url: URL) async throws -> HTTPClientResult {
+      fatalError("Not implemented")
+    }
 
     func complete(with error: Error, at index: Int = 0) {
       messages[index].completion(.failure(error))

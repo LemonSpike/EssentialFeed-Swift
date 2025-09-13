@@ -1,6 +1,6 @@
 import Foundation
 
-public struct URLSessionHTTPClient {
+public struct URLSessionHTTPClient: HTTPClient {
   private let session: URLSession
   
   public init(session: URLSession = .shared) {
@@ -16,6 +16,13 @@ public struct URLSessionHTTPClient {
       return .success(data, response)
     } catch {
       return .failure(error)
+    }
+  }
+  
+  public func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
+    Task {
+      let result = try await get(from: url)
+      completion(result)
     }
   }
 }

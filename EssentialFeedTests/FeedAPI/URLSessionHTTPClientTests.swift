@@ -112,7 +112,7 @@ class URLSessionHTTPClientTests {
   
   // MARK: Helpers
   
-  private func makeSUT() -> URLSessionHTTPClient {
+  private func makeSUT() -> HTTPClient {
     URLSessionHTTPClient()
   }
   
