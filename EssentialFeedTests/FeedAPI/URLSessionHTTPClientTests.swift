@@ -72,55 +72,42 @@ class URLSessionHTTPClientTests {
     "Invalid representation yields error",
     arguments: stubs
   )
-  private func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: Stub) async throws {
+  func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: Stub) async throws {
     _ = try await resultErrorFor(stub: stub)
   }
   
   @Test("Successful HTTPURLResponse with Data")
   func testGetFromURLSucceedsOnHTTPURLResponseWithData() async throws {
-    URLProtocolStub.stub(
-      with: Stub(
-        data: Self.anyData(),
-        response: Self.anyHTTPURLResponse(),
-        error: nil
-      )
+    let data = Self.anyData()
+    let response = Self.anyHTTPURLResponse()
+    let stub = Stub(
+      data: data,
+      response: response,
+      error: nil
     )
     
-    let result = try await makeSUT().get(from: Self.anyURL())
-    switch result {
-    case let .success(data, response):
-      #expect(data == Self.anyData())
-      #expect(response.url == Self.anyURL())
-      #expect(response.statusCode == 200)
-    case .failure(let error):
-      #expect(Bool(false), "Expected success, got an error \(error.localizedDescription) instead.")
-    @unknown default:
-      #expect(Bool(false), "Expected success, got a different result \(result) instead.")
-    }
+    let receivedValues = try await resultValuesFor(stub: stub)
+    
+    #expect(receivedValues?.data == data)
+    #expect(receivedValues?.response.url == response.url)
+    #expect(receivedValues?.response.statusCode == response.statusCode)
   }
   
   @Test("Successful HTTPURLResponse with Empty Data")
   func testGetFromURLSucceedsWithEmptyDataOnHTTPURLResponseWithNilData() async throws {
-    URLProtocolStub.stub(
-      with: Stub(
-        data: nil,
-        response: Self.anyHTTPURLResponse(),
-        error: nil
-      )
+    let response = Self.anyHTTPURLResponse()
+    let stub = Stub(
+      data: nil,
+      response: response,
+      error: nil
     )
     
-    let result = try await makeSUT().get(from: Self.anyURL())
-    switch result {
-    case let .success(data, response):
-      let emptyData = Data()
-      #expect(data == emptyData)
-      #expect(response.url == Self.anyURL())
-      #expect(response.statusCode == 200)
-    case .failure(let error):
-      #expect(Bool(false), "Expected success, got an error \(error.localizedDescription) instead.")
-    @unknown default:
-      #expect(Bool(false), "Expected success, got a different result \(result) instead.")
-    }
+    let receivedValues = try await resultValuesFor(stub: stub)
+
+    let emptyData = Data()
+    #expect(receivedValues?.data == emptyData)
+    #expect(receivedValues?.response.url == response.url)
+    #expect(receivedValues?.response.statusCode == response.statusCode)
   }
   
   // MARK: Helpers
@@ -156,15 +143,10 @@ class URLSessionHTTPClientTests {
     line: Int = #line,
     column: Int = #column
   ) async throws -> Error? {
-    URLProtocolStub.stub(with: stub)
-    
-    let sut = self.makeSUT()
-    
-    var receivedError: Error?
-    let result = try await sut.get(from: Self.anyURL())
+    let result = try await resultFor(stub: stub)
     switch result {
     case let .failure(error as NSError):
-      receivedError = error
+      return error
     default:
       let location = SourceLocation(
         fileID: fileID,
@@ -172,12 +154,41 @@ class URLSessionHTTPClientTests {
         line: line,
         column: column
       )
-      #expect(Bool(false), "Expected failure with error, got \(result) instead.", sourceLocation: location)
+      #expect(Bool(false), "Expected failure with NSError, got \(result) instead.", sourceLocation: location)
     }
-    return receivedError
+    return nil
   }
   
-  private struct Stub {
+  private func resultValuesFor(
+    stub: Stub,
+    fileID: String = #fileID,
+    filePath: String = #filePath,
+    line: Int = #line,
+    column: Int = #column
+  ) async throws -> (data: Data, response: HTTPURLResponse)? {
+    let result = try await resultFor(stub: stub)
+    switch result {
+    case let .success(data, response):
+      return (data, response)
+    default:
+      let location = SourceLocation(
+        fileID: fileID,
+        filePath: filePath,
+        line: line,
+        column: column
+      )
+      #expect(Bool(false), "Expected success with data and response, got result \(result) instead.", sourceLocation: location)
+    }
+    return nil
+  }
+  
+  private func resultFor(stub: Stub) async throws -> HTTPClientResult {
+    URLProtocolStub.stub(with: stub)
+    let sut = self.makeSUT()
+    return try await sut.get(from: Self.anyURL())
+  }
+  
+  struct Stub {
     let data: Data?
     let response: URLResponse?
     let error: Error?
