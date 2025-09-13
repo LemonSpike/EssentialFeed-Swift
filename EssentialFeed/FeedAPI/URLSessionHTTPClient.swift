@@ -13,9 +13,6 @@ public struct URLSessionHTTPClient {
       guard let response = response as? HTTPURLResponse else {
         throw URLError(.badServerResponse)
       }
-      guard data.count > 0 else {
-        throw URLError(.zeroByteResource)
-      }
       return .success(data, response)
     } catch {
       return .failure(error)

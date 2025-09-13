@@ -12,11 +12,6 @@ class URLSessionHTTPClientTests {
       error: nil
     ),
     Stub(
-      data: nil,
-      response: anyHTTPURLResponse(),
-      error: nil
-    ),
-    Stub(
       data: anyData(),
       response: nil,
       error: anyNSError()
@@ -95,6 +90,30 @@ class URLSessionHTTPClientTests {
     switch result {
     case let .success(data, response):
       #expect(data == Self.anyData())
+      #expect(response.url == Self.anyURL())
+      #expect(response.statusCode == 200)
+    case .failure(let error):
+      #expect(Bool(false), "Expected success, got an error \(error.localizedDescription) instead.")
+    @unknown default:
+      #expect(Bool(false), "Expected success, got a different result \(result) instead.")
+    }
+  }
+  
+  @Test("Successful HTTPURLResponse with Empty Data")
+  func testGetFromURLSucceedsWithEmptyDataOnHTTPURLResponseWithNilData() async throws {
+    URLProtocolStub.stub(
+      with: Stub(
+        data: nil,
+        response: Self.anyHTTPURLResponse(),
+        error: nil
+      )
+    )
+    
+    let result = try await makeSUT().get(from: Self.anyURL())
+    switch result {
+    case let .success(data, response):
+      let emptyData = Data()
+      #expect(data == emptyData)
       #expect(response.url == Self.anyURL())
       #expect(response.statusCode == 200)
     case .failure(let error):
