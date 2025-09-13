@@ -1,21 +1,23 @@
 import Foundation
 
-public struct URLSessionHTTPClient {
+public struct URLSessionHTTPClient: HTTPClient {
   private let session: URLSession
   
   public init(session: URLSession = .shared) {
     self.session = session
   }
   
-  public func get(from url: URL) async throws -> HTTPClientResult {
-    do {
-      let (data, response) = try await session.data(from: url)
-      guard let response = response as? HTTPURLResponse else {
-        throw URLError(.badServerResponse)
+  private struct UnexpectedValuesRepresentation: Error {}
+  
+  public func get(from url: URL, completion: @escaping (HTTPClientResult) -> Void) {
+    session.dataTask(with: url) { data, response, error in
+      if let error {
+        completion(.failure(error))
+      } else if let data, let response = response as? HTTPURLResponse {
+        completion(.success(data, response))
+      } else {
+        completion(.failure(UnexpectedValuesRepresentation()))
       }
-      return .success(data, response)
-    } catch {
-      return .failure(error)
-    }
+    }.resume()
   }
 }
