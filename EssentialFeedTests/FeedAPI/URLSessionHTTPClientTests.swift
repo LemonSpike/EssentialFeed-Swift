@@ -14,22 +14,22 @@ class URLSessionHTTPClientTests {
     Stub(
       data: anyData(),
       response: nil,
-      error: anyError()
+      error: anyNSError()
     ),
     Stub(
       data: nil,
       response: nonHTTPURLResponse(),
-      error: anyError()
+      error: anyNSError()
     ),
     Stub(
       data: nil,
       response: anyHTTPURLResponse(),
-      error: anyError()
+      error: anyNSError()
     ),
     Stub(
       data: anyData(),
       response: nonHTTPURLResponse(),
-      error: anyError()
+      error: anyNSError()
     ),
     Stub(
       data: anyData(),
@@ -65,7 +65,7 @@ class URLSessionHTTPClientTests {
   @Test func testGetFromURLFailsOnRequestError() async throws {
     try await LeakChecker { [weak self] checker in
       guard let self else { return }
-      let requestError = Self.anyError()
+      let requestError = Self.anyNSError()
       let stub = Stub(data: nil, response: nil, error: requestError)
       let receivedError = try await resultErrorFor(stub: stub) as? NSError
       
@@ -105,7 +105,7 @@ class URLSessionHTTPClientTests {
     "any data".data(using: .utf8)!
   }
   
-  private static func anyError() -> NSError {
+  private static func anyNSError() -> NSError {
     NSError(domain: "Any Error", code: 1)
   }
   
