@@ -15,9 +15,14 @@ struct EssentialFeedAPIEndToEndTests {
     case let .success(feed):
       #expect(feed.count == 8)
       
-      for (index, item) in feed.enumerated() {
-        #expect(item == expectedItem(at: index))
-      }
+      #expect(feed[0] == expectedItem(at: 0))
+      #expect(feed[1] == expectedItem(at: 1))
+      #expect(feed[2] == expectedItem(at: 2))
+      #expect(feed[3] == expectedItem(at: 3))
+      #expect(feed[4] == expectedItem(at: 4))
+      #expect(feed[5] == expectedItem(at: 5))
+      #expect(feed[6] == expectedItem(at: 6))
+      #expect(feed[7] == expectedItem(at: 7))
     case let .failure(error):
       #expect(Bool(false), "Expected successful feed result, got \(error) instead")
     default:
