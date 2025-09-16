@@ -5,13 +5,7 @@ import Testing
 struct EssentialFeedAPIEndToEndTests {
   
   @Test func testEndToEndTestServerGETFeedResultMatchesFixedTestAccountData() async throws {
-    let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
-    let client = URLSessionHTTPClient()
-    let loader = RemoteFeedLoader(url: testServerURL, client: client)
-    
-    let receivedResult = try await loader.load()
-    
-    switch receivedResult {
+    switch await getFeedResult() {
     case let .success(feed):
       #expect(feed.count == 8)
       
@@ -31,6 +25,14 @@ struct EssentialFeedAPIEndToEndTests {
   }
   
   // MARK: - Helpers
+  private func getFeedResult() async -> LoadFeedResult {
+    let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
+    let client = URLSessionHTTPClient()
+    let loader = RemoteFeedLoader(url: testServerURL, client: client)
+    
+    return await loader.load()
+  }
+  
   private func expectedItem(at index: Int) -> FeedItem {
     return FeedItem(
       id: UUID(uuidString: [
