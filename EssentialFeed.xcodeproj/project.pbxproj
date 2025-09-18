@@ -34,6 +34,16 @@
 		D4CDB11A2E5A3163007AF2D2 /* EssentialFeedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EssentialFeedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C141D5172E7943730026ACEB /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedAPIEndToEndTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LeakChecker.swift,
+			);
+			target = C1417E0F2E76FD210026ACEB /* EssentialFeedAPIEndToEndTests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		C1417E112E76FD210026ACEB /* EssentialFeedAPIEndToEndTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -47,6 +57,9 @@
 		};
 		D4CDB11E2E5A3163007AF2D2 /* EssentialFeedTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C141D5172E7943730026ACEB /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedAPIEndToEndTests" target */,
+			);
 			path = EssentialFeedTests;
 			sourceTree = "<group>";
 		};

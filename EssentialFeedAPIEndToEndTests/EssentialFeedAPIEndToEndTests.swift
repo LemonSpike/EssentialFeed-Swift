@@ -5,32 +5,36 @@ import Testing
 struct EssentialFeedAPIEndToEndTests {
   
   @Test func testEndToEndTestServerGETFeedResultMatchesFixedTestAccountData() async throws {
-    switch await getFeedResult() {
-    case let .success(feed):
-      #expect(feed.count == 8)
-      
-      #expect(feed[0] == expectedItem(at: 0))
-      #expect(feed[1] == expectedItem(at: 1))
-      #expect(feed[2] == expectedItem(at: 2))
-      #expect(feed[3] == expectedItem(at: 3))
-      #expect(feed[4] == expectedItem(at: 4))
-      #expect(feed[5] == expectedItem(at: 5))
-      #expect(feed[6] == expectedItem(at: 6))
-      #expect(feed[7] == expectedItem(at: 7))
-    case let .failure(error):
-      #expect(Bool(false), "Expected successful feed result, got \(error) instead")
-    default:
-      #expect(Bool(false), "Expected successful feed result, got no result instead")
+    try await LeakChecker { checker in
+      let (loader, result) = await getFeedResult()
+      checker.checkForMemoryLeak(loader)
+      switch result {
+      case let .success(feed):
+        #expect(feed.count == 8)
+        
+        #expect(feed[0] == expectedItem(at: 0))
+        #expect(feed[1] == expectedItem(at: 1))
+        #expect(feed[2] == expectedItem(at: 2))
+        #expect(feed[3] == expectedItem(at: 3))
+        #expect(feed[4] == expectedItem(at: 4))
+        #expect(feed[5] == expectedItem(at: 5))
+        #expect(feed[6] == expectedItem(at: 6))
+        #expect(feed[7] == expectedItem(at: 7))
+      case let .failure(error):
+        #expect(Bool(false), "Expected successful feed result, got \(error) instead")
+      default:
+        #expect(Bool(false), "Expected successful feed result, got no result instead")
+      }
     }
   }
   
   // MARK: - Helpers
-  private func getFeedResult() async -> LoadFeedResult {
+  private func getFeedResult() async -> (loader: RemoteFeedLoader, result: LoadFeedResult) {
     let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
     let client = URLSessionHTTPClient()
     let loader = RemoteFeedLoader(url: testServerURL, client: client)
     
-    return await loader.load()
+    return (loader, await loader.load())
   }
   
   private func expectedItem(at index: Int) -> FeedItem {
