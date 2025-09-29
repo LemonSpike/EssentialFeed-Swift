@@ -3,7 +3,7 @@ import Testing
 import EssentialFeed
 
 @Suite
-struct RemoteFeedLoaderTests {
+struct LoadFeedFromRemoteUseCaseTests {
   @Test func testInitDoesNotRequestDataFromURL() async throws {
     try await LeakChecker { checker in
       let (sut, client) = makeSUT()
