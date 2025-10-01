@@ -24,14 +24,12 @@ class FeedStore {
 @Suite
 struct CacheFeedUseCaseTests {
   @Test func testInitDoesNotDeleteCacheUponCreation() async throws {
-    let store = FeedStore()
-    _ = LocalFeedLoader(store: store)
+    let (_, store) = makeSUT()
     #expect(store.deleteCachedFeedCallCount == 0)
   }
   
   @Test func testSaveRequestsCacheDeletion() async throws {
-    let store = FeedStore()
-    let sut = LocalFeedLoader(store: store)
+    let (sut, store) = makeSUT()
     let items = [uniqueItem(), uniqueItem()]
     
     // when
@@ -41,6 +39,12 @@ struct CacheFeedUseCaseTests {
   }
   
   // MARK: - Helpers
+  private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStore) {
+    let store = FeedStore()
+    let sut = LocalFeedLoader(store: store)
+    return (sut, store)
+  }
+  
   func uniqueItem() -> FeedItem {
     return FeedItem(id: UUID(), description: "any", location: "any", imageURL: anyURL())
   }
