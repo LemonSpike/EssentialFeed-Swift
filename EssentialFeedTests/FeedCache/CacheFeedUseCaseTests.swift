@@ -1,6 +1,6 @@
 import EssentialFeed
 import Foundation
-import Testing
+import XCTest
 
 class LocalFeedLoader {
   private let store: FeedStore
@@ -21,30 +21,32 @@ class FeedStore {
   }
 }
 
-@Suite
-struct CacheFeedUseCaseTests {
-  @Test func testInitDoesNotDeleteCacheUponCreation() async throws {
+final class CacheFeedUseCaseTests: XCTestCase {
+  func testInitDoesNotDeleteCacheUponCreation() async throws {
     let (_, store) = makeSUT()
-    #expect(store.deleteCachedFeedCallCount == 0)
+    XCTAssertEqual(store.deleteCachedFeedCallCount, 0)
   }
   
-  @Test func testSaveRequestsCacheDeletion() async throws {
+  func testSaveRequestsCacheDeletion() async throws {
     let (sut, store) = makeSUT()
     let items = [uniqueItem(), uniqueItem()]
     
     // when
     sut.save(feed: items)
     
-    #expect(store.deleteCachedFeedCallCount == 1)
+    XCTAssertEqual(store.deleteCachedFeedCallCount, 1)
   }
   
   // MARK: - Helpers
-  private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStore) {
+  private func makeSUT(file: StaticString = #file, line: UInt = #line) -> (sut: LocalFeedLoader, store: FeedStore) {
     let store = FeedStore()
     let sut = LocalFeedLoader(store: store)
+    trackForMemoryLeaks(store, file: file, line: line)
+    trackForMemoryLeaks(sut, file: file, line: line)
+
     return (sut, store)
   }
-  
+
   func uniqueItem() -> FeedItem {
     return FeedItem(id: UUID(), description: "any", location: "any", imageURL: anyURL())
   }
