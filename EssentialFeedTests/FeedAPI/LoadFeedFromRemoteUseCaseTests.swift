@@ -153,12 +153,12 @@ struct LoadFeedFromRemoteUseCaseTests {
     description: String? = nil,
     location: String? = nil,
     imageUrl: URL
-  ) -> (model: FeedItem, json:[String: Any]) {
-    let item = FeedItem(
+  ) -> (model: FeedImage, json:[String: Any]) {
+    let item = FeedImage(
       id: id,
       description: description,
       location: location,
-      imageURL: imageUrl
+      url: imageUrl
     )
     let json = [
       "id": id.uuidString,
