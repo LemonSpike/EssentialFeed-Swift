@@ -9,17 +9,17 @@ struct EssentialFeedAPIEndToEndTests {
       let (loader, result) = await getFeedResult()
       checker.checkForMemoryLeak(loader)
       switch result {
-      case let .success(feed):
-        #expect(feed.count == 8)
+      case let .success(imageFeed):
+        #expect(imageFeed.count == 8, "Expected 8 images in the test account image feed")
         
-        #expect(feed[0] == expectedItem(at: 0))
-        #expect(feed[1] == expectedItem(at: 1))
-        #expect(feed[2] == expectedItem(at: 2))
-        #expect(feed[3] == expectedItem(at: 3))
-        #expect(feed[4] == expectedItem(at: 4))
-        #expect(feed[5] == expectedItem(at: 5))
-        #expect(feed[6] == expectedItem(at: 6))
-        #expect(feed[7] == expectedItem(at: 7))
+        #expect(imageFeed[0] == expectedImage(at: 0))
+        #expect(imageFeed[1] == expectedImage(at: 1))
+        #expect(imageFeed[2] == expectedImage(at: 2))
+        #expect(imageFeed[3] == expectedImage(at: 3))
+        #expect(imageFeed[4] == expectedImage(at: 4))
+        #expect(imageFeed[5] == expectedImage(at: 5))
+        #expect(imageFeed[6] == expectedImage(at: 6))
+        #expect(imageFeed[7] == expectedImage(at: 7))
       case let .failure(error):
         #expect(Bool(false), "Expected successful feed result, got \(error) instead")
       default:
@@ -37,8 +37,8 @@ struct EssentialFeedAPIEndToEndTests {
     return (loader, await loader.load())
   }
   
-  private func expectedItem(at index: Int) -> FeedItem {
-    return FeedItem(
+  private func expectedImage(at index: Int) -> FeedImage {
+    return FeedImage(
       id: UUID(uuidString: [
         "73A7F70C-75DA-4C2E-B5A3-EED40DC53AA6",
         "BA298A85-6275-48D3-8315-9C8F7C1CD109",
@@ -69,7 +69,7 @@ struct EssentialFeedAPIEndToEndTests {
         "Location 7",
         "Location 8"
       ][index],
-      imageURL: URL(string: "https://url-\(index+1).com")!
+      url: URL(string: "https://url-\(index+1).com")!
     )
   }
 }
