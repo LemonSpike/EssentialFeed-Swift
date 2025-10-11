@@ -1,13 +1,24 @@
+import EssentialFeed
 import XCTest
 
 final class LoadFeedFromCacheUseCaseTests: XCTestCase {
-  
-  override func setUpWithError() throws {
+
+  func testInitDoesNotMessageStoreUponCreation() throws {
+    let (_, store) = makeSUT()
+    XCTAssertEqual(store.receivedMessages, [])
   }
-  
-  override func tearDownWithError() throws {
-  }
-  
-  func testExample() throws {
+
+  // MARK: - Helpers
+  private func makeSUT(
+    currentDate: @escaping () -> Date = Date.init,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) -> (sut: LocalFeedLoader, store: FeedStoreSpy) {
+    let store = FeedStoreSpy()
+    let sut = LocalFeedLoader(store: store, currentDate: currentDate)
+    trackForMemoryLeaks(store, file: file, line: line)
+    trackForMemoryLeaks(sut, file: file, line: line)
+
+    return (sut, store)
   }
 }
