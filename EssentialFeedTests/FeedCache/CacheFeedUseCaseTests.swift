@@ -163,5 +163,4 @@ final class CacheFeedUseCaseTests: XCTestCase {
   private func anyNSError() -> NSError {
     NSError(domain: "Any Error", code: 1)
   }
-
 }

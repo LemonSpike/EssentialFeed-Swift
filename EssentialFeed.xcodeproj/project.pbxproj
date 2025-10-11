@@ -47,13 +47,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		C1419D3C2E8DC1B10064CF9F /* Exceptions for "EssentialFeedTests" folder in "Copy Bundle Resources" phase from "EssentialFeedTests" target */ = {
-			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
-			buildPhase = D4CDB1182E5A3163007AF2D2 /* Resources */;
-			membershipExceptions = (
-				"Helpers/XCTestCase+MemoryLeakTracking.swift",
-			);
-		};
 		C1419D3D2E8DC1B10064CF9F /* Exceptions for "EssentialFeedTests" folder in "Copy Bundle Resources" phase from "EssentialFeedAPIEndToEndTests" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = C1417E0E2E76FD210026ACEB /* Resources */;
@@ -77,7 +70,6 @@
 		D4CDB11E2E5A3163007AF2D2 /* EssentialFeedTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				C1419D3C2E8DC1B10064CF9F /* Exceptions for "EssentialFeedTests" folder in "Copy Bundle Resources" phase from "EssentialFeedTests" target */,
 				C141D5172E7943730026ACEB /* Exceptions for "EssentialFeedTests" folder in "EssentialFeedAPIEndToEndTests" target */,
 				C1419D3D2E8DC1B10064CF9F /* Exceptions for "EssentialFeedTests" folder in "Copy Bundle Resources" phase from "EssentialFeedAPIEndToEndTests" target */,
 			);
