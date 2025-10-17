@@ -47,7 +47,7 @@ class URLSessionHTTPClientTests {
   }
   
   @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
-    let url = Self.anyURL()
+    let url = anyURL()
     try await confirmation("Wait for request") { fulfill in
       URLProtocolStub.observeRequests { request in
         #expect(request.url == url)
@@ -60,7 +60,7 @@ class URLSessionHTTPClientTests {
   }
   
   @Test func testGetFromURLFailsOnRequestError() async throws {
-    let requestError = Self.anyNSError()
+    let requestError = anyNSError()
     let stub = Stub(data: nil, response: nil, error: requestError)
     let receivedError = try await resultErrorFor(stub: stub) as? NSError
     
@@ -116,16 +116,8 @@ class URLSessionHTTPClientTests {
     URLSessionHTTPClient()
   }
   
-  private static func anyURL() -> URL {
-    URL(string: "https://any-url.com")!
-  }
-  
   private static func anyData() -> Data {
     "any data".data(using: .utf8)!
-  }
-  
-  private static func anyNSError() -> NSError {
-    NSError(domain: "Any Error", code: 1)
   }
   
   private static func nonHTTPURLResponse() -> URLResponse {
@@ -185,7 +177,7 @@ class URLSessionHTTPClientTests {
   private func resultFor(stub: Stub) async throws -> HTTPClientResult {
     URLProtocolStub.stub(with: stub)
     let sut = self.makeSUT()
-    return try await sut.get(from: Self.anyURL())
+    return try await sut.get(from: anyURL())
   }
   
   struct Stub {
