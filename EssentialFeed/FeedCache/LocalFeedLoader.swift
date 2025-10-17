@@ -3,15 +3,15 @@ import Foundation
 private final class FeedCachePolicy {
   private let calendar = Calendar(identifier: .gregorian)
   private let currentDate: () -> Date
-  
+
   public init(currentDate: @escaping () -> Date) {
     self.currentDate = currentDate
   }
-  
+
   private var maxCacheAgeInDays: Int {
     7
   }
-  
+
   func validate(_ timestamp: Date) -> Bool {
     guard let maxCacheAge = calendar.date(byAdding: .day, value: maxCacheAgeInDays, to: timestamp) else {
       return false
@@ -24,7 +24,7 @@ public final class LocalFeedLoader {
   private let store: FeedStore
   private let currentDate: () -> Date
   private let cachePolicy: FeedCachePolicy
-  
+
   public init(store: FeedStore, currentDate: @escaping () -> Date) {
     self.store = store
     self.currentDate = currentDate
@@ -34,11 +34,11 @@ public final class LocalFeedLoader {
 
 extension LocalFeedLoader {
   public typealias SaveResult = Error?
-  
+
   public func save(_ feed: [FeedImage], completion: @escaping (SaveResult) -> ()) {
     store.deleteCachedFeed { [weak self] error in
       guard let self else { return }
-      
+
       if let cacheDeletionError = error {
         completion(cacheDeletionError)
       } else {
@@ -46,7 +46,7 @@ extension LocalFeedLoader {
       }
     }
   }
-  
+
   private func cache(
     _ feed: [FeedImage],
     with completion: @escaping (SaveResult) -> ()
@@ -63,7 +63,7 @@ extension LocalFeedLoader {
 
 extension LocalFeedLoader: FeedLoader {
   public typealias LoadResult = LoadFeedResult
-  
+
   public func load(completion: @escaping (LoadResult) -> Void) {
     store.retrieve { [weak self] result in
       guard let self else { return }
