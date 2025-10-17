@@ -29,14 +29,12 @@ public final class LocalFeedLoader {
     store.retrieve { [weak self] result in
       guard let self else { return }
       switch result {
-        case let .failure(error):
-          completion(.failure(error))
-        case let .found(feed, timestamp) where self.validate(timestamp):
-          completion(.success(feed.toModels()))
-        case .found:
-          completion(.success([]))
-        case .empty:
-          completion(.success([]))
+      case let .failure(error):
+        completion(.failure(error))
+      case let .found(feed, timestamp) where self.validate(timestamp):
+        completion(.success(feed.toModels()))
+      case .found, .empty:
+        completion(.success([]))
       }
     }
   }
