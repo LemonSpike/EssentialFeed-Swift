@@ -8,7 +8,7 @@
     
 - Insert
     ✅ To empty cache stores data
-    - To non-empty cache overrides previous value
+    ✅ To non-empty cache overrides previous data with new data
     - Error (if possible to simulate, e.g., no write permission)
 
 - Delete
