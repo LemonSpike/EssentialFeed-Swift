@@ -4,7 +4,7 @@
     ✅ Non-empty cache returns data
     ✅ Non-empty cache twice returns same data (retrieve should have no side-effects)
     ✅ Error returns error (if possible to simulate, e.g., invalid data)
-    - Error twice returns same error (if possible to simulate, e.g., invalid data)
+    ✅ Error twice returns same error (if possible to simulate, e.g., invalid data)
     
 - Insert
     ✅ To empty cache stores data
