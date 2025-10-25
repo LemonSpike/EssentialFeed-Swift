@@ -1,6 +1,6 @@
 import Foundation
 
-public class CodableFeedStore {
+public class CodableFeedStore: FeedStore {
   private struct Cache: Codable {
     let feed: [CodableFeedImage]
     let timestamp: Date
@@ -63,4 +63,17 @@ public class CodableFeedStore {
       completion(error)
     }
   }
+  
+  public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+      guard FileManager.default.fileExists(atPath: storeURL.path) else {
+        return completion(nil)
+      }
+
+      do {
+        try FileManager.default.removeItem(at: storeURL)
+        completion(nil)
+      } catch {
+        completion(error)
+      }
+    }
 }
