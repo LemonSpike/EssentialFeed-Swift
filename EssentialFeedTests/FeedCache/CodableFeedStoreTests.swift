@@ -109,6 +109,16 @@ final class CodableFeedStoreTests: XCTestCase {
       XCTAssertNil(deletionError, "Expected non-empty cache deletion to succeed")
       expect(sut, toRetrieve: .empty)
     }
+    
+    func test_delete_deliversErrorOnDeletionError() {
+      let noDeletePermissionURL = cachesDirectory()
+      let sut = makeSUT(storeURL: noDeletePermissionURL)
+      
+      let deletionError = deleteCache(from: sut)
+      
+      XCTAssertNotNil(deletionError, "Expected cache deletion to fail")
+      expect(sut, toRetrieve: .empty)
+    }
   
   // - MARK: Helpers
   
