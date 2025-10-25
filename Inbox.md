@@ -11,10 +11,10 @@
     ✅ To non-empty cache overrides previous data with new data
     ✅ Error (if possible to simulate, e.g., no write permission)
 
-- Delete
-    - Empty cache does nothing (cache stays empty and does not fail)
-    - Inserted data leaves cache empty
-    - Error (if possible to simulate, e.g., no write permission)
+✅ Delete
+    ✅ Empty cache does nothing (cache stays empty and does not fail)
+    ✅ Inserted data leaves cache empty
+    ✅ Error (if possible to simulate, e.g., no write permission)
 
 - Side-effects must run serially to avoid race-conditions (deleting the wrong cache... overriding the latest data...)
 
