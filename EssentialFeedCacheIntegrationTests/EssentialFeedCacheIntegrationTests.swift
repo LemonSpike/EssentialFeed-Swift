@@ -24,12 +24,7 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     let sutToPerformLoad = makeSUT()
     let feed = uniqueImageFeed().models
     
-    let saveExpectation = expectation(description: "Wait for save completion")
-    sutToPerformSave.save(feed) { saveError in
-      XCTAssertNil(saveError, "Expected to save feed successfully")
-      saveExpectation.fulfill()
-    }
-    wait(for: [saveExpectation], timeout: 0.1)
+    save(feed, with: sutToPerformSave)
     
     expect(sutToPerformLoad, toLoad: feed)
   }
@@ -41,19 +36,8 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     let firstFeed = uniqueImageFeed().models
     let lastFeed = uniqueImageFeed().models
     
-    let firstSaveExpectation = expectation(description: "Wait for first save completion")
-    sutToPerformFirstSave.save(firstFeed) { firstSaveError in
-      XCTAssertNil(firstSaveError, "Expected to save feed successfully")
-      firstSaveExpectation.fulfill()
-    }
-    wait(for: [firstSaveExpectation], timeout: 0.1)
-    
-    let lastSaveExpectation = expectation(description: "Wait for last save completion")
-    sutToPerformLastSave.save(lastFeed) { lastSaveError in
-      XCTAssertNil(lastSaveError, "Expected to save feed successfully")
-      lastSaveExpectation.fulfill()
-    }
-    wait(for: [lastSaveExpectation], timeout: 0.1)
+    save(firstFeed, with: sutToPerformFirstSave)
+    save(lastFeed, with: sutToPerformLastSave)
     
     expect(sutToPerformLoad, toLoad: lastFeed)
   }
@@ -92,6 +76,20 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
       expectation.fulfill()
     }
     wait(for: [expectation], timeout: 0.1)
+  }
+  
+  private func save(
+    _ items: [FeedImage],
+    with sut: LocalFeedLoader,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    let saveExpectation = expectation(description: "Wait for save completion")
+    sut.save(items) { saveError in
+      XCTAssertNil(saveError, "Expected to save feed successfully", file: file, line: line)
+      saveExpectation.fulfill()
+    }
+    wait(for: [saveExpectation], timeout: 0.1)
   }
   
   private func setupEmptyStoreState() {
