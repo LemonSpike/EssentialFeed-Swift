@@ -66,6 +66,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				EssentialFeedCacheIntegrationTests.xctestplan,
+				FeedCache/Helpers/FeedCacheTestHelpers.swift,
+				Helpers/SharedTestHelpers.swift,
 				"Helpers/XCTestCase+MemoryLeakTracking.swift",
 			);
 			target = C14BA5992EB693FD00F926A1 /* EssentialFeedCacheIntegrationTests */;
