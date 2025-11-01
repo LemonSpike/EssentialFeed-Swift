@@ -16,20 +16,7 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
   func testLoadDeliversNoItemsOnEmptyCache() {
     let sut = makeSUT()
 
-    let expectation = expectation(description: "Wait for load completion")
-    sut.load { result in
-      switch result {
-      case let .success(items):
-        XCTAssertEqual(items, [], "Expected empty feed result")
-      case let .failure(error):
-        XCTFail("Expected successful feed result, got \(error) instead")
-      @unknown default:
-        XCTFail("Unexpected case")
-      }
-      
-      expectation.fulfill()
-    }
-    wait(for: [expectation], timeout: 0.1)
+    expect(sut, toLoad: [])
   }
   
   func testLoadDeliversItemsSavedOnASeparateInstance() {
@@ -44,20 +31,7 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     }
     wait(for: [saveExpectation], timeout: 0.1)
     
-    let loadExpectation = expectation(description: "Wait for load completion")
-    sutToPerformLoad.load { loadResult in
-      switch loadResult {
-      case let .success(imageFeed):
-        XCTAssertEqual(imageFeed, feed, "Expected to load previously saved feed")
-      case let .failure(error):
-        XCTFail("Expected successful feed result, got \(error) instead")
-      @unknown default:
-        XCTFail("Unexpected case")
-      }
-      
-      loadExpectation.fulfill()
-    }
-    wait(for: [loadExpectation], timeout: 0.1)
+    expect(sutToPerformLoad, toLoad: feed)
   }
   
   // MARK: - Helpers
@@ -72,6 +46,28 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     trackForMemoryLeaks(store, file: file, line: line)
     trackForMemoryLeaks(sut, file: file, line: line)
     return sut
+  }
+  
+  func expect(
+    _ sut: LocalFeedLoader,
+    toLoad items: [FeedImage],
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
+    let expectation = expectation(description: "Wait for load completion")
+    sut.load { result in
+      switch result {
+      case let .success(loadedItems):
+        XCTAssertEqual(loadedItems, items, "Expected empty feed result", file: file, line: line)
+      case let .failure(error):
+        XCTFail("Expected successful feed result, got \(error) instead", file: file, line: line)
+      @unknown default:
+        XCTFail("Unexpected case", file: file, line: line)
+      }
+      
+      expectation.fulfill()
+    }
+    wait(for: [expectation], timeout: 0.1)
   }
   
   private func setupEmptyStoreState() {
