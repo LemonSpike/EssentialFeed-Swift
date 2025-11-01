@@ -34,6 +34,30 @@ final class EssentialFeedCacheIntegrationTests: XCTestCase {
     expect(sutToPerformLoad, toLoad: feed)
   }
   
+  func testSaveOverwritesItemsSavedOnASeparateInstance() {
+    let sutToPerformFirstSave = makeSUT()
+    let sutToPerformLastSave = makeSUT()
+    let sutToPerformLoad = makeSUT()
+    let firstFeed = uniqueImageFeed().models
+    let lastFeed = uniqueImageFeed().models
+    
+    let firstSaveExpectation = expectation(description: "Wait for first save completion")
+    sutToPerformFirstSave.save(firstFeed) { firstSaveError in
+      XCTAssertNil(firstSaveError, "Expected to save feed successfully")
+      firstSaveExpectation.fulfill()
+    }
+    wait(for: [firstSaveExpectation], timeout: 0.1)
+    
+    let lastSaveExpectation = expectation(description: "Wait for last save completion")
+    sutToPerformLastSave.save(lastFeed) { lastSaveError in
+      XCTAssertNil(lastSaveError, "Expected to save feed successfully")
+      lastSaveExpectation.fulfill()
+    }
+    wait(for: [lastSaveExpectation], timeout: 0.1)
+    
+    expect(sutToPerformLoad, toLoad: lastFeed)
+  }
+  
   // MARK: - Helpers
   private func makeSUT(
     file: StaticString = #file,
