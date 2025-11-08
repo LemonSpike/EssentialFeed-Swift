@@ -8,7 +8,10 @@ class ManagedCache: NSManagedObject {
 
 extension ManagedCache {
   static func find(in context: NSManagedObjectContext) throws -> ManagedCache? {
-    let request = NSFetchRequest<ManagedCache>(entityName: entity().name!)
+    guard let name = entity().name else {
+      return nil
+    }
+    let request = NSFetchRequest<ManagedCache>(entityName: name)
     request.returnsObjectsAsFaults = false
     return try context.fetch(request).first
   }
