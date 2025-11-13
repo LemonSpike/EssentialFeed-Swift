@@ -22,14 +22,14 @@ struct EssentialFeedAPIEndToEndTests {
         #expect(imageFeed[7] == expectedImage(at: 7))
       case let .failure(error):
         #expect(Bool(false), "Expected successful feed result, got \(error) instead")
-      default:
+      @unknown default:
         #expect(Bool(false), "Expected successful feed result, got no result instead")
       }
     }
   }
   
   // MARK: - Helpers
-  private func getFeedResult() async -> (loader: RemoteFeedLoader, result: LoadFeedResult) {
+  private func getFeedResult() async -> (loader: RemoteFeedLoader, result: FeedLoader.Result) {
     let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
     let client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
     let loader = RemoteFeedLoader(url: testServerURL, client: client)
