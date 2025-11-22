@@ -25,7 +25,7 @@ public final class RemoteFeedLoader: FeedLoader {
       guard let self else { return }
 
       switch result {
-        case let .success(data, response):
+        case let .success((data, response)):
           completion(self.map(data, from: response))
         case .failure:
           completion(.failure(Error.connectivity))

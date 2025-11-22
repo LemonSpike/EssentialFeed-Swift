@@ -160,7 +160,7 @@ class URLSessionHTTPClientTests {
   ) async throws -> (data: Data, response: HTTPURLResponse)? {
     let result = try await resultFor(stub: stub)
     switch result {
-    case let .success(data, response):
+    case let .success((data, response)):
       return (data, response)
     default:
       let location = SourceLocation(
@@ -174,7 +174,7 @@ class URLSessionHTTPClientTests {
     return nil
   }
   
-  private func resultFor(stub: Stub) async throws -> HTTPClientResult {
+  private func resultFor(stub: Stub) async throws -> HTTPClient.Result {
     URLProtocolStub.stub(with: stub)
     let sut = self.makeSUT()
     return try await sut.get(from: anyURL())
