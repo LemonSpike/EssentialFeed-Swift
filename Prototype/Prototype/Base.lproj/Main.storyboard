@@ -7,10 +7,10 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Table View Controller-->
+        <!--My Feed-->
         <scene sceneID="wsy-Fj-nYq">
             <objects>
-                <tableViewController id="Pa9-3K-aKO" sceneMemberID="viewController">
+                <tableViewController id="Pa9-3K-aKO" customClass="FeedViewController" customModule="Prototype" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" id="DLQ-fh-u1O">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -105,7 +105,7 @@ Location</string>
                             <outlet property="delegate" destination="Pa9-3K-aKO" id="ClE-hN-Age"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" id="Kyo-V6-9zJ"/>
+                    <navigationItem key="navigationItem" title="My Feed" id="Kyo-V6-9zJ"/>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="rPe-vI-40x" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
