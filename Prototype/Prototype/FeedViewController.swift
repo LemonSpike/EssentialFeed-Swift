@@ -8,16 +8,22 @@
 import UIKit
 
 class FeedViewController: UITableViewController {
+  private let feed = FeedImageViewModel.prototypeFeed
+
   override func viewDidLoad() {
     super.viewDidLoad()
   }
 
   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    10
+    feed.count
   }
 
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-    let cell = tableView.dequeueReusableCell(withIdentifier: "FeedImageCell", for: indexPath)
+    guard let cell = tableView.dequeueReusableCell(withIdentifier: "FeedImageCell", for: indexPath) as? FeedImageCell else {
+      return UITableViewCell()
+    }
+    let model = feed[indexPath.row]
+    cell.configure(with: model)
     return cell
   }
 
