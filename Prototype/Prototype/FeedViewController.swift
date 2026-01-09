@@ -8,22 +8,24 @@
 import UIKit
 
 class FeedViewController: UITableViewController {
-  private var viewAppeared = false
+  private var onViewIsAppearing: ((FeedViewController) -> Void)?
   private var feed: [FeedImageViewModel] = []
 
   override func viewDidLoad() {
     super.viewDidLoad()
     refreshControl = UIRefreshControl()
     refreshControl?.addTarget(self, action: #selector(refresh), for: .valueChanged)
+    
+    onViewIsAppearing = { feedVC in
+      feedVC.refresh()
+      feedVC.onViewIsAppearing = nil
+    }
   }
   
   override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
 
-    if !viewAppeared {
-      refresh()
-      viewAppeared = true
-    }
+    onViewIsAppearing?(self)
     // tableView.setContentOffset(CGPoint(x: 0, y: -tableView.contentInset.top), animated: false)
   }
   
