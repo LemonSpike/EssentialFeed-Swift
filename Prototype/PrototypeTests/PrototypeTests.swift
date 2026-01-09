@@ -3,17 +3,10 @@ import XCTest
 
 final class PrototypeTests: XCTestCase {
 
-  
-  // 16:47
   func test_refreshControl() {
     let sut = FeedViewController()
     
-    sut.loadViewIfNeeded() // viewDidLoad
-    sut.replaceRefreshControlWithFakeForiOS17Support()
-    XCTAssertEqual(sut.refreshControl?.isRefreshing, false)
-    
-    sut.beginAppearanceTransition(true, animated: false)
-    sut.endAppearanceTransition()
+    sut.simulateAppearance()
     XCTAssertEqual(sut.refreshControl?.isRefreshing, true)
     
     sut.refreshControl?.endRefreshing()
@@ -21,13 +14,22 @@ final class PrototypeTests: XCTestCase {
     XCTAssertEqual(sut.refreshControl?.isRefreshing, true)
     
     sut.refreshControl?.endRefreshing()
-    sut.beginAppearanceTransition(true, animated: false)
-    sut.endAppearanceTransition()
+    sut.simulateAppearance()
     XCTAssertEqual(sut.refreshControl?.isRefreshing, false)
   }
 }
 
 private extension FeedViewController {
+  func simulateAppearance() {
+    if !isViewLoaded {
+      loadViewIfNeeded()
+      replaceRefreshControlWithFakeForiOS17Support()
+    }
+    
+    beginAppearanceTransition(true, animated: false)
+    endAppearanceTransition()
+  }
+  
   func replaceRefreshControlWithFakeForiOS17Support() {
     let fake = FakeRefreshControl()
     
