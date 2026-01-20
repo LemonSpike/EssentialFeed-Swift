@@ -34,7 +34,7 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
   
   public override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
-
+    
     load()
   }
   
@@ -74,11 +74,15 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
         cell?.feedImageContainer.stopShimmering()
       }
     }
-
+    
     cell.onRetry = loadImage
     loadImage()
     
     return cell
+  }
+  
+  public override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    startTask(forRowAt: indexPath)
   }
   
   public override func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -87,13 +91,17 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
   
   public func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
     indexPaths.forEach { indexPath in
-      let cellModel = tableModel[indexPath.row]
-      tasks[indexPath] = imageLoader?.loadImageData(from: cellModel.url) { _ in }
+      startTask(forRowAt: indexPath)
     }
   }
   
   public func tableView(_ tableView: UITableView, cancelPrefetchingForRowsAt indexPaths: [IndexPath]) {
     indexPaths.forEach(cancelTask)
+  }
+  
+  private func startTask(forRowAt indexPath: IndexPath) {
+    let cellModel = tableModel[indexPath.row]
+    tasks[indexPath] = imageLoader?.loadImageData(from: cellModel.url) { _ in }
   }
   
   private func cancelTask(forRowAt indexPath: IndexPath) {
