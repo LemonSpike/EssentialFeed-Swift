@@ -70,7 +70,7 @@ private final class FeedLoaderPresentationAdapter {
     self.presenter = presenter
   }
   
-  private func loadFeed() {
+  func loadFeed() {
     presenter.didStartLoadingFeed()
     
     feedLoader.load { [weak self] result in
