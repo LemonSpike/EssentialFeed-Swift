@@ -1,8 +1,12 @@
 import UIKit
 
-final public class FeedViewController: UITableViewController, UITableViewDataSourcePrefetching {
+protocol FeedViewControllerDelegate {
+  func didRequestFeedRefresh()
+}
+
+final public class FeedViewController: UITableViewController, UITableViewDataSourcePrefetching, FeedLoadingView {
   
-  @IBOutlet public var refreshController: FeedRefreshViewController?
+  var delegate: FeedViewControllerDelegate?
 
   var tableModel: [FeedImageCellController] = [] {
     didSet {
@@ -19,9 +23,23 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
   public override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     
-    refreshController?.refresh()
+    refresh()
   }
-  
+
+  // MARK: - FeedLoadingView
+  @IBAction private func refresh() {
+    delegate?.didRequestFeedRefresh()
+  }
+
+  func display(_ viewModel: FeedLoadingViewModel) {
+    if viewModel.isLoading {
+      refreshControl?.beginRefreshing()
+    } else {
+      refreshControl?.endRefreshing()
+    }
+  }
+
+  // MARK: - UITableViewDataSource and UITableViewDelegate
   public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
     tableModel.count
   }
