@@ -13,12 +13,6 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
       tableView.reloadData()
     }
   }
-
-  public override func viewDidLoad() {
-    super.viewDidLoad()
-
-    tableView.prefetchDataSource = self
-  }
   
   public override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
