@@ -12,7 +12,7 @@ final class FeedImageCellController: FeedImageView {
   init(delegate: FeedImageCellControllerDelegate) {
     self.delegate = delegate
   }
-  
+
   func view(in tableView: UITableView) -> UITableViewCell {
     cell = tableView.dequeueReusableCell()
     delegate.didRequestImage()
@@ -36,9 +36,13 @@ final class FeedImageCellController: FeedImageView {
     cell?.feedImageContainer.isShimmering = viewModel.isLoading
     cell?.feedImageRetryButton.isHidden = !viewModel.shouldRetry
     cell?.onRetry = delegate.didRequestImage
+    cell?.onReuse = { [weak self] in
+      self?.releaseCellForReuse()
+    }
   }
 
   private func releaseCellForReuse() {
+    cell?.onReuse = nil
     cell = nil
   }
 }
