@@ -17,7 +17,7 @@ final public class FeedViewController: UITableViewController, UITableViewDataSou
   public override func viewIsAppearing(_ animated: Bool) {
     super.viewIsAppearing(animated)
     
-    title = "My Feed"
+    title = FeedPresenter.title
     refresh()
   }
 
