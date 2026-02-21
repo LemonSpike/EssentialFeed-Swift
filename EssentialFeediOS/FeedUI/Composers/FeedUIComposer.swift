@@ -25,9 +25,9 @@ public final class FeedUIComposer {
 }
 
 private final class MainQueueDispatchDecorator<T> {
-  private let decoratee: FeedLoader
+  private let decoratee: T
   
-  init(decoratee: FeedLoader) {
+  init(decoratee: T) {
     self.decoratee = decoratee
   }
   
