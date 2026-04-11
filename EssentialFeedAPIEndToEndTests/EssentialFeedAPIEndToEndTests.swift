@@ -3,10 +3,11 @@ import Foundation
 import Testing
 
 struct EssentialFeedAPIEndToEndTests {
-
+  
   @Test func testEndToEndTestServerGETFeedResultMatchesFixedTestAccountData() async throws {
     try await LeakChecker { checker in
-      let (loader, result) = await getFeedResult()
+      let (client, loader, result) = await getFeedResult()
+      checker.checkForMemoryLeak(client)
       checker.checkForMemoryLeak(loader)
       switch result {
       case let .success(imageFeed):
@@ -28,13 +29,52 @@ struct EssentialFeedAPIEndToEndTests {
     }
   }
   
+  @Test func test_endToEndTestServerGETFeedImageDataResult_matchesFixedTestAccountData() async throws {
+    try await LeakChecker { checker in
+      let (client, loader, result) = await getFeedImageDataResult()
+      checker.checkForMemoryLeak(client)
+      checker.checkForMemoryLeak(loader)
+      switch result {
+      case let .success(data)?:
+        #expect(!data.isEmpty, "Expected non-empty image data")
+        
+      case let .failure(error)?:
+        #expect(Bool(false), "Expected successful image data result, got \(error) instead")
+        
+      default:
+        #expect(Bool(false), "Expected successful image data result, got no result instead")
+      }
+    }
+  }
+  
   // MARK: - Helpers
-  private func getFeedResult() async -> (loader: RemoteFeedLoader, result: FeedLoader.Result) {
-    let testServerURL = URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
-    let client = URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
-    let loader = RemoteFeedLoader(url: testServerURL, client: client)
+  private func getFeedResult() async -> (URLSessionHTTPClient, RemoteFeedLoader, FeedLoader.Result) {
+    let client = ephemeralClient()
+    let loader = RemoteFeedLoader(url: feedTestServerURL, client: client)
     
-    return (loader, await loader.load())
+    return (client, loader, await loader.load())
+  }
+  
+  private func getFeedImageDataResult(file: StaticString = #file, line: UInt = #line) async -> (URLSessionHTTPClient, RemoteFeedImageDataLoader, FeedImageDataLoader.Result?) {
+    let client = ephemeralClient()
+    let loader = RemoteFeedImageDataLoader(client: client)
+    
+    
+    return await withCheckedContinuation { continuation in
+      let url = feedTestServerURL.appendingPathComponent("73A7F70C-75DA-4C2E-B5A3-EED40DC53AA6/image")
+      
+      _ = loader.loadImageData(from: url) { result in
+        continuation.resume(returning: (client, loader, result))
+      }
+    }
+  }
+  
+  private var feedTestServerURL: URL {
+    return URL(string: "https://essentialdeveloper.com/feed-case-study/test-api/feed")!
+  }
+  
+  private func ephemeralClient(file: StaticString = #file, line: UInt = #line) -> URLSessionHTTPClient {
+    return URLSessionHTTPClient(session: URLSession(configuration: .ephemeral))
   }
   
   private func expectedImage(at index: Int) -> FeedImage {

@@ -5,45 +5,41 @@ import EssentialFeed
 @Suite
 class URLSessionHTTPClientTests {
   
-  private static let stubs = [
-    Stub(
+  private static let stubs: [(Data?, URLResponse?, Error?)] = [
+    (
       data: nil,
       response: nonHTTPURLResponse(),
       error: nil
     ),
-    Stub(
+    (
       data: anyData(),
       response: nil,
       error: anyNSError()
     ),
-    Stub(
+    (
       data: nil,
       response: nonHTTPURLResponse(),
       error: anyNSError()
     ),
-    Stub(
+    (
       data: nil,
       response: anyHTTPURLResponse(),
       error: anyNSError()
     ),
-    Stub(
+    (
       data: anyData(),
       response: nonHTTPURLResponse(),
       error: anyNSError()
     ),
-    Stub(
+    (
       data: anyData(),
       response: nonHTTPURLResponse(),
       error: nil
     )
   ]
   
-  init() {
-    URLProtocolStub.startInterceptingRequests()
-  }
-  
   deinit {
-    URLProtocolStub.stopInterceptingRequests()
+    URLProtocolStub.removeStub()
   }
   
   @Test func testGetFromURLPerformsGETRequestWithURL() async throws {
@@ -59,10 +55,16 @@ class URLSessionHTTPClientTests {
     }
   }
   
+  @Test func test_cancelGetFromURLTask_cancelsURLRequest() async throws {
+    let receivedError = try await resultErrorFor(taskHandler: { $0.cancel() }) as? NSError
+    
+    #expect(receivedError?.code == URLError.cancelled.rawValue)
+  }
+  
   @Test func testGetFromURLFailsOnRequestError() async throws {
     let requestError = anyNSError()
-    let stub = Stub(data: nil, response: nil, error: requestError)
-    let receivedError = try await resultErrorFor(stub: stub) as? NSError
+    let stub: (Data?, URLResponse?, Error?) = (data: nil, response: nil, error: requestError)
+    let receivedError = try await resultErrorFor(stub) as? NSError
     
     #expect(receivedError?.domain == requestError.domain)
     #expect(receivedError?.code == requestError.code)
@@ -72,21 +74,20 @@ class URLSessionHTTPClientTests {
     "Invalid representation yields error",
     arguments: stubs
   )
-  func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: Stub) async throws {
-    _ = try await resultErrorFor(stub: stub)
+  func testGetFromURLFailsOnAllInvalidRepresentationCases(stub: (Data?, URLResponse?, Error?)) async throws {
+    _ = try await resultErrorFor(stub)
   }
   
   @Test("Successful HTTPURLResponse with Data")
   func testGetFromURLSucceedsOnHTTPURLResponseWithData() async throws {
-    let data = Self.anyData()
+    let data = anyData()
     let response = Self.anyHTTPURLResponse()
-    let stub = Stub(
+    
+    let receivedValues = try await resultValuesFor((
       data: data,
       response: response,
       error: nil
-    )
-    
-    let receivedValues = try await resultValuesFor(stub: stub)
+    ))
     
     #expect(receivedValues?.data == data)
     #expect(receivedValues?.response.url == response.url)
@@ -96,14 +97,13 @@ class URLSessionHTTPClientTests {
   @Test("Successful HTTPURLResponse with Empty Data")
   func testGetFromURLSucceedsWithEmptyDataOnHTTPURLResponseWithNilData() async throws {
     let response = Self.anyHTTPURLResponse()
-    let stub = Stub(
+    
+    let receivedValues = try await resultValuesFor((
       data: nil,
       response: response,
       error: nil
-    )
+    ))
     
-    let receivedValues = try await resultValuesFor(stub: stub)
-
     let emptyData = Data()
     #expect(receivedValues?.data == emptyData)
     #expect(receivedValues?.response.url == response.url)
@@ -113,11 +113,11 @@ class URLSessionHTTPClientTests {
   // MARK: Helpers
   
   private func makeSUT() -> HTTPClient {
-    URLSessionHTTPClient()
-  }
-  
-  private static func anyData() -> Data {
-    "any data".data(using: .utf8)!
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [URLProtocolStub.self]
+    let session = URLSession(configuration: configuration)
+    
+    return URLSessionHTTPClient(session: session)
   }
   
   private static func nonHTTPURLResponse() -> URLResponse {
@@ -129,13 +129,14 @@ class URLSessionHTTPClientTests {
   }
   
   private func resultErrorFor(
-    stub: Stub,
+    _ values: (data: Data?, response: URLResponse?, error: Error?)? = nil,
+    taskHandler: @escaping (HTTPClientTask) -> Void = { _ in },
     fileID: String = #fileID,
     filePath: String = #filePath,
     line: Int = #line,
     column: Int = #column
   ) async throws -> Error? {
-    let result = try await resultFor(stub: stub)
+    let result = try await resultFor(values, taskHandler: taskHandler)
     switch result {
     case let .failure(error as NSError):
       return error
@@ -152,13 +153,13 @@ class URLSessionHTTPClientTests {
   }
   
   private func resultValuesFor(
-    stub: Stub,
+    _ values: (data: Data?, response: URLResponse?, error: Error?)?,
     fileID: String = #fileID,
     filePath: String = #filePath,
     line: Int = #line,
     column: Int = #column
   ) async throws -> (data: Data, response: HTTPURLResponse)? {
-    let result = try await resultFor(stub: stub)
+    let result = try await resultFor(values)
     switch result {
     case let .success((data, response)):
       return (data, response)
@@ -174,74 +175,19 @@ class URLSessionHTTPClientTests {
     return nil
   }
   
-  private func resultFor(stub: Stub) async throws -> HTTPClient.Result {
-    URLProtocolStub.stub(with: stub)
+  private func resultFor(
+    _ values: (data: Data?, response: URLResponse?, error: Error?)?,
+    taskHandler: @escaping (HTTPClientTask) -> Void = { _ in }
+  ) async throws -> HTTPClient.Result {
+    values.map {
+      URLProtocolStub.stub(
+        data: $0,
+        response: $1,
+        error: $2
+      )
+    }
     let sut = self.makeSUT()
-    return try await sut.get(from: anyURL())
-  }
-  
-  struct Stub {
-    let data: Data?
-    let response: URLResponse?
-    let error: Error?
-  }
-  
-  private class URLProtocolStub: URLProtocol {
-    private static var stub: Stub?
-    private static var requestObserver: ((URLRequest) -> Void)?
-    
-    static func stub(with stub: Stub) {
-      self.stub = stub
-    }
-    
-    static func observeRequests(observer: @escaping (URLRequest) -> Void) {
-      requestObserver = observer
-    }
-    
-    static func startInterceptingRequests() {
-      URLProtocol.registerClass(URLProtocolStub.self)
-    }
-    
-    static func stopInterceptingRequests() {
-      URLProtocol.unregisterClass(URLProtocolStub.self)
-      stub = nil
-      requestObserver = nil
-    }
-    
-    override class func canInit(with request: URLRequest) -> Bool {
-      return true
-    }
-    
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-      request
-    }
-    
-    override func startLoading() {
-      if let requestObserver = URLProtocolStub.requestObserver {
-        client?.urlProtocolDidFinishLoading(self)
-        return requestObserver(request)
-      }
-      guard let stub = URLProtocolStub.stub else {
-        client?.urlProtocol(self, didFailWithError: NSError(domain: "URLProtocolStub", code: 1, userInfo: [NSLocalizedDescriptionKey: "No stub available"]))
-        client?.urlProtocolDidFinishLoading(self)
-        return
-      }
-      
-      if let data = stub.data {
-        client?.urlProtocol(self, didLoad: data)
-      }
-      
-      if let response = stub.response {
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-      }
-      
-      if let error = stub.error {
-        client?.urlProtocol(self, didFailWithError: error)
-      }
-      
-      client?.urlProtocolDidFinishLoading(self)
-    }
-    
-    override func stopLoading() {}
+
+    return try await sut.get(from: anyURL(), taskHandler: taskHandler)
   }
 }
