@@ -92,7 +92,7 @@ Then the app should display an error message
 1. System delivers no feed images.
 
 #### Empty cache course (sad path):
-1. System delivers no feed images.
+1. System delivers not found error.
 
 
 ### Validate Feed Cache Use Case
